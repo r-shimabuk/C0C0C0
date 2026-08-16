@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#e2e2e0">
-<title>#C0C0C0</title>
+<title>.CO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
@@ -305,8 +305,11 @@
     50%{ transform:scale(1.035); }
   }
   .loading-logo{ display:flex; align-items:baseline; gap:6px; margin-bottom:14px; }
-  .loading-hash{ font-size:15px; letter-spacing:.28em; color:var(--ink); font-weight:600; }
-  .loading-ext{ font-size:10px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:1px 6px; font-weight:700; }
+  .loading-ext{ font-size:18px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:3px 10px; font-weight:700; }
+  .loading-tagline{
+    font-size:9.5px; color:var(--ink-dim); text-align:center; line-height:1.7;
+    margin-bottom:22px; letter-spacing:.02em; padding:0 30px;
+  }
   .loading-status{ font-size:9.5px; letter-spacing:.18em; color:var(--ink-dim); text-transform:uppercase; }
   .loading-status .dots{ display:inline-block; width:1.4em; text-align:left; animation: dotBlink 1.2s steps(4,end) infinite; }
   @keyframes dotBlink{
@@ -314,9 +317,10 @@
     100%{ clip-path: inset(0 0 0 0); }
   }
   .loading-prompt{
-    font-size:10px; letter-spacing:.22em; color:var(--orange); text-transform:uppercase;
+    font-size:10px; letter-spacing:.18em; color:var(--orange); text-transform:uppercase;
     font-weight:700; margin-top:18px; opacity:0; transition:opacity .4s ease;
     animation: promptPulse 1.4s ease-in-out infinite;
+    text-align:center; padding:0 24px;
   }
   .loading-screen.ready .loading-prompt{ opacity:1; }
   .loading-screen.ready .loading-status{ display:none; }
@@ -334,19 +338,18 @@
     </svg>
   </div>
   <div class="loading-logo">
-    <span class="loading-hash">#C0C0C0</span>
-    <span class="loading-ext">.C0</span>
+    <span class="loading-ext">.CO</span>
   </div>
-  <div class="loading-status">ESTABLISHING SIGNAL<span class="dots">...</span></div>
-  <div class="loading-prompt">Touch to Connect</div>
+  <div class="loading-tagline">Spend your life force. Live conveniently.<br>寿命を使って、便利な暮らしを。</div>
+  <div class="loading-status">CONNECTING TO .CO<span class="dots">...</span></div>
+  <div class="loading-prompt">Welcome to .co — Touch to Enter</div>
 </div>
 <div class="page-bg"></div>
 <div class="wrap">
 
   <div class="hud">
     <div class="brand-row">
-      <div class="brand">#C0C0C0</div>
-      <div class="brand-ext">.C0</div>
+      <div class="brand-ext">.CO</div>
     </div>
     <div class="toprow">
       <div class="stat-col">
@@ -778,6 +781,7 @@
       totalGrowth = MIN_RATIO;
     }
     rewindGauge(totalGrowth);
+    saveState();
   }
 
   core.addEventListener('pointerdown', (e)=>{
@@ -849,6 +853,7 @@
           renderShop();
           renderOwnedRow();
           spawnPopup('LV.' + u.level);
+          saveState();
         }
       });
 
@@ -955,6 +960,15 @@
 
   // --- purchase log: accumulates every item ever redeemed ---
   const purchaseLog = {}; // name -> { name, nameJa, cost, icon, qty, spent }
+  let totalSpentEver = 0;
+  // stage color: main accent color shifts as the story progresses
+  const STAGE_COLORS = [
+    { base: '#ff3d00', dim: 'rgba(255,61,0,.58)',   faint: 'rgba(255,61,0,.22)' },   // 0: orange
+    { base: '#ff2d87', dim: 'rgba(255,45,135,.58)', faint: 'rgba(255,45,135,.22)' }, // 1: pink
+    { base: '#29c5e6', dim: 'rgba(41,197,230,.58)', faint: 'rgba(41,197,230,.22)' }, // 2: light blue
+    { base: '#9b5de5', dim: 'rgba(155,93,229,.58)', faint: 'rgba(155,93,229,.22)' }, // 3: purple
+    { base: '#4a4a47', dim: 'rgba(74,74,71,.6)',    faint: 'rgba(74,74,71,.22)' }    // 4: dark gray
+  ];
   function recordPurchase(receipt){
     receipt.lines.forEach(l => {
       const catEntry = catalog.find(c => c.name === l.name);
@@ -963,7 +977,9 @@
       }
       purchaseLog[l.name].qty += l.qty;
       purchaseLog[l.name].spent += l.subtotal;
+      totalSpentEver += l.subtotal;
     });
+    applyStageColors();
   }
   function renderLog(){
     logListEl.innerHTML = '';
@@ -1000,6 +1016,7 @@
     renderLog();
     points = 0;
     updateHud();
+    saveState();
   }
 
   checkoutBtn.addEventListener('click', ()=>{
@@ -1030,6 +1047,48 @@
 
   buildGaugeDots();
   updateHud();
+
+  // --- persistence: save/restore across reloads via localStorage ---
+  const STORAGE_KEY = 'cococo_c0c0c0_save_v1';
+  function saveState(){
+    try{
+      const data = {
+        points: points,
+        bestHold: bestHold,
+        upgrades: upgrades.map(u => ({ id: u.id, level: u.level })),
+        purchaseLog: purchaseLog,
+        totalSpentEver: totalSpentEver
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){}
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(typeof data.points === 'number') points = data.points;
+      if(typeof data.bestHold === 'number') bestHold = data.bestHold;
+      if(Array.isArray(data.upgrades)){
+        data.upgrades.forEach(saved => {
+          const u = getUpgrade(saved.id);
+          if(u && typeof saved.level === 'number') u.level = saved.level;
+        });
+      }
+      if(data.purchaseLog && typeof data.purchaseLog === 'object'){
+        Object.keys(data.purchaseLog).forEach(key => {
+          purchaseLog[key] = data.purchaseLog[key];
+        });
+      }
+      if(typeof data.totalSpentEver === 'number') totalSpentEver = data.totalSpentEver;
+    }catch(e){}
+  }
+  loadState();
+  displayedPoints = points;
+  bestEl.textContent = bestHold.toFixed(1) + 's';
+  applyStageColors();
+  setInterval(saveState, 5000);
+  window.addEventListener('beforeunload', saveState);
 
   // --- ticker: merchant ads + a 5-stage story arc tied to digit count ---
   const tickerWrapEl = document.getElementById('tickerWrap');
@@ -1116,14 +1175,26 @@
     '記録に残るのは、あなただけ'
   ];
 
-  function digitCount(){ return Math.max(String(Math.floor(points)).length, 1); }
+  function digitsOf(n){ return n > 0 ? String(Math.floor(n)).length : 0; }
+  function storyStageIndex(){
+    const d = digitsOf(totalSpentEver);
+    if(d >= POINTS_DIGITS) return 4;
+    if(d >= 12) return 3;
+    if(d >= 8) return 2;
+    if(d >= 5) return 1;
+    return 0;
+  }
   function getStoryPool(){
-    const d = digitCount();
-    if(d >= POINTS_DIGITS) return stage4News;
-    if(d >= 12) return stage3News;
-    if(d >= 8) return stage2News;
-    if(d >= 5) return stage1News;
-    return stage0News;
+    const pools = [stage0News, stage1News, stage2News, stage3News, stage4News];
+    return pools[storyStageIndex()];
+  }
+
+  function applyStageColors(){
+    const c = STAGE_COLORS[storyStageIndex()];
+    const root = document.documentElement.style;
+    root.setProperty('--orange', c.base);
+    root.setProperty('--orange-dim', c.dim);
+    root.setProperty('--orange-faint', c.faint);
   }
 
   function glitchify(text){
