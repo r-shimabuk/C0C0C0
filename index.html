@@ -487,43 +487,7 @@
   let lastTickTime = 0;
   let lastTierPlayed = 1;
 
-  // --- audio feedback: charging ticks + release pop ---
-  let audioCtx = null;
-  function ensureAudio(){
-    if(!audioCtx){
-      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
-    }
-    if(audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume(); }
-  }
-  function playTick(freq){
-    if(!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(0.045, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.05);
-  }
-  function playRelease(strength){
-    if(!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    const startFreq = 320 + strength * 300;
-    osc.frequency.setValueAtTime(startFreq, t);
-    osc.frequency.exponentialRampToValueAtTime(110, t + 0.24);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.32);
-  }
+  // --- haptic feedback only (audio removed) ---
   function vibrate(pattern){
     if(navigator.vibrate){
       try{ navigator.vibrate(pattern); }catch(e){}
@@ -721,7 +685,6 @@
     const tickInterval = t === 3 ? 70 : (t === 2 ? 130 : 200);
     if(now - lastTickTime >= tickInterval){
       lastTickTime = now;
-      playTick(300 + t * 130 + Math.random() * 25);
       vibrate(6);
     }
     rafId = requestAnimationFrame(loop);
@@ -733,7 +696,6 @@
     startTime = performance.now();
     lastTickTime = performance.now();
     lastTierPlayed = 1;
-    ensureAudio();
     vibrate(10);
     core.classList.add('charging');
     verbEl.textContent = 'CHARGING';
@@ -772,7 +734,6 @@
     renderShop();
 
     const strength = Math.min(sec / 8, 1);
-    playRelease(strength);
     vibrate(sec >= 7 ? [25,30,45] : (sec >= 3 ? [20,20,30] : 35));
 
     const burstDur = Math.min(0.4 + sec * 0.1, 1.8);
