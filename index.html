@@ -1079,10 +1079,10 @@
     if(roll < 0.35){
       const item = catalog[Math.floor(Math.random() * catalog.length)];
       const tmpl = adTemplates[Math.floor(Math.random() * adTemplates.length)];
-      msg = tmpl(item.nameJa, item.cost);
+      msg = '【商人】' + tmpl(item.nameJa, item.cost);
     } else {
       const pool = getStoryPool();
-      msg = pool[Math.floor(Math.random() * pool.length)];
+      msg = '【NEWS】' + pool[Math.floor(Math.random() * pool.length)];
     }
     if(Math.random() < 0.16){
       msg = glitchify(msg);
