@@ -39,9 +39,14 @@
     position:fixed; inset:0; background:var(--bg); z-index:-1;
   }
   .wrap{
-    height:100%; display:flex; flex-direction:column; align-items:center;
+    height:calc(100% - 112px); display:flex; flex-direction:column; align-items:center;
     padding:20px 16px 18px; position:relative;
     background:var(--bg);
+  }
+  .minimap-dock{
+    position:fixed; left:0; right:0; bottom:0; height:112px; z-index:10;
+    background:var(--bg); border-top:1.5px solid var(--orange);
+    display:flex; align-items:center; justify-content:center;
   }
   .hud{ width:100%; max-width:420px; flex-shrink:0; }
   .brand-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:8px; }
@@ -56,7 +61,7 @@
   .hud .best{ color:var(--ink); font-size:20px; font-weight:600; margin-top:2px; letter-spacing:.02em; }
   .points-wrap{ position:relative; width:100%; }
   .points-block{ width:100%; display:flex; flex-direction:column; gap:8px; }
-  .points-row{ width:100%; display:grid; grid-template-columns:repeat(8, 1fr); gap:4px; }
+  .points-row{ width:100%; display:grid; grid-template-columns:repeat(8, 1fr); gap:4px; align-items:start; }
   .digit{
     font-family:"Space Grotesk", sans-serif;
     font-weight:600; color:var(--orange); letter-spacing:0;
@@ -64,24 +69,50 @@
     font-variant-numeric: tabular-nums slashed-zero;
     border:1.5px solid var(--orange); border-radius:2px; padding:4px 0;
     display:flex; align-items:center; justify-content:center;
+    box-sizing:border-box;
   }
   .digit.brand-digit{ letter-spacing:-.05em; border:none; align-items:flex-end; padding-bottom:2px; }
-
-  .tabs{ width:100%; max-width:420px; display:flex; gap:8px; margin:18px 0 12px; flex-shrink:0; }
-  .tab{
-    flex:1; text-align:center; padding:11px 0; font-size:11px; letter-spacing:.16em;
-    border:1.5px solid var(--orange); border-radius:0; background:transparent; color:var(--orange);
-    cursor:pointer; font-weight:500; text-transform:uppercase;
+  .digit.locked{
+    color:transparent; border-color:var(--orange);
+    background-image:
+      linear-gradient(to bottom right, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
+      linear-gradient(to bottom left, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+    background-repeat:no-repeat;
   }
-  .tab.active{ color:var(--bg); background:var(--orange); font-weight:600; }
+
+  .minimap{ width:100%; max-width:460px; padding:0 12px; margin:0 auto; }
+  .colony-name{
+    font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:700;
+    text-align:center; text-transform:uppercase; margin-bottom:8px;
+  }
+  .minimap-svg{ width:100%; height:auto; display:block; margin:0 auto; }
+  .room-connector{ stroke:var(--ink-dim); stroke-width:1.5; }
+  .room-rect{ fill:transparent; stroke:var(--ink-dim); stroke-width:1.5; transition:fill .2s ease, stroke .2s ease; cursor:pointer; }
+  .room-rect.wc-rect{ stroke-width:1.5; }
+  .room-group{ cursor:pointer; }
+  .room-rect.current{ fill:var(--orange); stroke:var(--orange); }
+  .room-label{
+    font-family:"Space Grotesk", sans-serif; font-size:6px; font-weight:600;
+    fill:var(--ink-dim); text-anchor:middle; pointer-events:none; letter-spacing:0;
+  }
+  .room-label.current{ fill:var(--bg); }
+
+  .tabs{ width:100%; max-width:420px; display:flex; gap:0; margin:14px 0 12px; flex-shrink:0; }
+  .tab{
+    flex:1; text-align:center; padding:8px 2px 10px; font-size:9px; letter-spacing:.05em;
+    border:none; background:transparent; color:var(--ink-dim);
+    cursor:pointer; font-weight:500; text-transform:uppercase;
+    border-bottom:2px solid transparent;
+  }
+  .tab.active{ color:var(--orange); font-weight:700; border-bottom-color:var(--orange); }
 
   .panels{ flex:1; width:100%; max-width:420px; display:flex; overflow:hidden; min-height:0; }
   .panel{ display:none; width:100%; flex-direction:column; align-items:center; min-height:0; }
   .panel.active{ display:flex; }
 
   /* --- charge panel --- */
-  #panel-charge{ justify-content:space-between; }
-  .stage{ position:relative; width:236px; height:236px; display:flex; align-items:center; justify-content:center; margin-bottom:44px; margin-top:36px; }
+  #panel-charge{ justify-content:flex-start; }
+  .stage{ position:relative; width:236px; height:236px; display:flex; align-items:center; justify-content:center; margin-bottom:34px; margin-top:52px; }
   #gaugeDots{ position:absolute; inset:0; }
   .gdot{
     position:absolute; width:6px; height:6px; border-radius:50%;
@@ -142,22 +173,48 @@
   .burst-ring.ring1.play{ animation: burstWave1 var(--burst-dur, .55s) cubic-bezier(.17,.75,.25,1) forwards; }
   .burst-ring.ring2.play{ animation: burstWave2 calc(var(--burst-dur, .55s) + .12s) cubic-bezier(.17,.75,.25,1) forwards; animation-delay:.05s; }
 
-  .footer{ width:100%; text-align:center; flex-shrink:0; }
-  .ticker-wrap{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:100vw; z-index:5; opacity:0; pointer-events:none; transition:opacity .35s ease;
-  }
-  .ticker-wrap.show{ opacity:1; }
-  .ticker-text{
-    background:var(--orange); color:var(--bg); font-weight:700;
-    font-family:"Courier New", monospace; font-size:11px;
-    text-align:center; padding:10px 24px; letter-spacing:.02em;
-  }
-  .rate{ font-size:10.5px; color:var(--ink-dim); letter-spacing:.03em; min-height:16px; }
+  .footer{ width:100%; text-align:left; flex-shrink:0; padding:0 8px; margin-top:auto; }
+  .lonely-row{ display:flex; align-items:center; gap:10px; }
+  .lonely-label{ font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:600; white-space:nowrap; }
+  .lonely-bar{ width:60%; max-width:220px; height:6px; border:1.5px solid var(--orange); position:relative; overflow:hidden; flex-shrink:0; }
+  .lonely-fill{ position:absolute; inset:0; background:var(--orange); width:100%; transition:width .3s ease; transform-origin:left; }
 
+  .satellite-dish{ width:110px; height:110px; margin:18px auto 20px; }
+  .satellite-dish svg{ width:100%; height:100%; animation: dishScan 5s ease-in-out infinite; }
+  @keyframes dishScan{
+    0%,100%{ transform:rotate(-4deg); } 50%{ transform:rotate(4deg); }
+  }
+  .ticker-static{
+    font-family:"Courier New", monospace; font-size:12px; color:var(--ink);
+    text-align:center; padding:0 20px; line-height:1.7; min-height:60px;
+  }
+
+  /* --- loneliness ad popup: real stacked cards, each closed individually --- */
+  .lonely-ad{
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:70;
+    display:none; padding:0;
+  }
+  .lonely-ad.show{ display:block; }
+  .lonely-ad-cards{ position:absolute; inset:0; }
+  .lonely-ad-card{
+    background:var(--orange); width:calc(100% - 48px); max-width:320px; padding:26px 22px;
+    text-align:center; position:fixed;
+  }
+  .lonely-ad-count{
+    position:absolute; top:12px; left:14px; color:var(--bg); font-size:11px;
+    font-weight:700; letter-spacing:.04em;
+  }
+  .lonely-ad-close{ position:absolute; top:12px; right:14px; color:var(--bg); font-size:16px; cursor:pointer; }
+  .lonely-ad-title{ font-size:14px; font-weight:700; color:var(--bg); margin-bottom:10px; line-height:1.5; }
+  .lonely-ad-sub{ font-size:11px; color:var(--bg); opacity:.85; line-height:1.7; margin-bottom:18px; }
+  .lonely-ad-btn{
+    background:var(--bg); color:var(--orange); border:none; padding:11px 22px;
+    font-family:inherit; font-weight:700; font-size:11px; letter-spacing:.05em;
+    text-transform:uppercase; cursor:pointer;
+  }
   .owned-row{
     display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
-    min-height:26px; margin-top:4px;
+    min-height:26px; margin:10px 0 0; width:100%; max-width:420px;
   }
   .owned-badge{
     display:flex; align-items:center; gap:5px; background:transparent;
@@ -177,7 +234,7 @@
   }
 
   /* --- shop panel --- */
-  #panel-shop, #panel-log{ overflow-y:auto; padding-top:4px; align-items:stretch; -webkit-overflow-scrolling:touch; touch-action:pan-y; min-height:0; }
+  #panel-shop, #panel-log, #panel-news{ overflow-y:auto; padding-top:4px; align-items:stretch; -webkit-overflow-scrolling:touch; touch-action:pan-y; min-height:0; }
   .shop-item{
     border:1.5px solid var(--orange); background:transparent; border-radius:2px; padding:14px 14px;
     margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -220,9 +277,20 @@
     border-bottom:1px dotted var(--orange-faint); padding:8px 2px; line-height:1.5;
   }
 
+  .satellite-log{
+    width:100%; max-width:340px; margin:18px auto 0; padding-top:14px;
+    border-top:1.5px dashed var(--ink-dim);
+  }
+  .satellite-log-item{
+    font-family:"Courier New", monospace; font-size:11px; color:var(--ink-dim);
+    border-bottom:1px dotted var(--ink-dim); padding:7px 2px; line-height:1.5;
+  }
+  .satellite-log-item.latest{ color:var(--orange); font-weight:700; }
+  .satellite-log-empty{ font-size:11px; color:var(--ink-dim); text-align:center; padding:14px 0; }
+
   /* --- checkout: flat full-bleed, 2-color only --- */
   .checkout-fab{
-    position:fixed; right:16px; bottom:16px; z-index:20;
+    position:fixed; right:16px; bottom:128px; z-index:20;
     width:54px; height:54px; border-radius:50%;
     background:var(--orange); color:var(--bg); border:none;
     display:flex; align-items:center; justify-content:center;
@@ -230,9 +298,55 @@
   }
   .checkout-fab svg{ width:24px; height:24px; }
   .checkout-label{
-    position:fixed; right:14px; bottom:70px; z-index:20;
+    position:fixed; right:14px; bottom:182px; z-index:20;
     font-size:9px; letter-spacing:.06em; color:var(--orange); font-weight:600;
     text-transform:uppercase; text-align:center; width:64px; line-height:1.5;
+  }
+
+  /* --- crew manifest modal --- */
+  .crew-screen{
+    position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:65;
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .crew-screen.show{ display:flex; }
+  .crew-card{
+    background:var(--bg); width:100%; max-width:340px; padding:28px 22px;
+    text-align:center; position:relative; border:1.5px solid var(--orange);
+  }
+  .crew-close{
+    position:absolute; top:14px; right:16px; font-size:16px; color:var(--orange); cursor:pointer;
+  }
+  .crew-label{
+    font-size:10px; letter-spacing:.16em; color:var(--ink-dim); font-weight:700;
+    text-transform:uppercase; margin-bottom:10px;
+  }
+  .crew-count{
+    font-family:"Space Grotesk", sans-serif; font-size:36px; font-weight:700;
+    color:var(--orange); line-height:1; margin-bottom:18px;
+  }
+  .crew-count-of{ font-size:16px; color:var(--ink-dim); font-weight:500; }
+  .crew-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:10px;
+    margin-bottom:18px; padding:0 6px;
+  }
+  .crew-figure{ width:100%; }
+  .crew-figure svg{ width:100%; height:auto; }
+  .crew-day{
+    font-size:10px; color:var(--ink-dim); letter-spacing:.1em; font-weight:700;
+    text-transform:uppercase; margin-bottom:16px;
+  }
+  .crew-note{ font-size:10.5px; color:var(--ink-dim); line-height:1.7; }
+
+  .crew-reset-row{
+    margin-top:20px; padding-top:14px; border-top:1px dashed var(--ink-dim);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .crew-reset-text{ font-size:8px; color:var(--ink-dim); text-align:left; line-height:1.5; }
+  .crew-reset-yn{ display:flex; gap:4px; flex-shrink:0; }
+  .crew-yn-btn{
+    width:20px; height:20px; border:1px solid var(--ink-dim); background:transparent;
+    color:var(--ink-dim); font-family:inherit; font-size:9px; font-weight:700;
+    cursor:pointer; border-radius:2px; padding:0;
   }
   .checkout-screen{
     position:fixed; inset:0; background:rgba(0,0,0,.28);
@@ -267,37 +381,51 @@
     position:relative;
   }
   .co-close{
-    position:absolute; top:16px; right:18px; font-size:18px; color:var(--bg);
+    position:absolute; top:16px; right:18px; font-size:20px; color:var(--bg);
     cursor:pointer; font-weight:500;
   }
-  .co-label{ font-size:10.5px; color:var(--bg); font-weight:700; letter-spacing:.2em; text-transform:uppercase; margin-bottom:6px; text-align:center; }
+  .co-receipt-header{
+    text-align:center; margin-bottom:10px;
+  }
+  .co-receipt-header .biz{ font-size:15px; font-weight:700; color:var(--bg); letter-spacing:.08em; }
+  .co-receipt-header .biz-ja{ font-size:11px; color:var(--bg); opacity:.85; margin-top:2px; }
+  .co-receipt-header .stamp{
+    display:inline-block; margin-top:8px; padding:3px 10px; border:1.5px solid var(--bg);
+    font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--bg); text-transform:uppercase;
+  }
+  .co-label{ font-size:11.5px; color:var(--bg); font-weight:700; letter-spacing:.16em; margin-bottom:6px; text-align:center; }
   .co-score{
-    font-family:"Space Grotesk", sans-serif; font-weight:600; font-size:44px;
+    font-family:"Space Grotesk", sans-serif; font-weight:700; font-size:52px;
     color:var(--bg); line-height:1; letter-spacing:0; margin-bottom:4px;
     font-variant-numeric: tabular-nums slashed-zero; text-align:center;
   }
-  .co-score .unit{ font-size:16px; opacity:.85; margin-left:4px; }
-  .co-sub{ font-size:9px; color:var(--bg); font-weight:600; letter-spacing:.14em; text-transform:uppercase; margin-bottom:14px; text-align:center; }
-  .co-divider{ border-top:1px dashed var(--bg); opacity:.55; margin:6px 0; flex-shrink:0; }
+  .co-score .unit{ font-size:18px; opacity:.85; margin-left:4px; }
+  .co-sub{ font-size:11px; color:var(--bg); font-weight:700; letter-spacing:.1em; margin-bottom:14px; text-align:center; }
+  .co-divider{ border-top:2px dashed var(--bg); opacity:.6; margin:6px 0; flex-shrink:0; }
   .co-receipt{
     flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
-    font-family:"Courier New", monospace; font-size:12.5px; color:var(--bg);
+    font-family:"Courier New", monospace; font-size:14.5px; color:var(--bg);
     min-height:0; font-variant-numeric: slashed-zero;
   }
   .receipt-line{
     display:flex; justify-content:space-between; gap:8px;
-    padding:5px 0; border-bottom:1px dotted rgba(226,226,224,.35);
+    padding:7px 0; border-bottom:1px dotted rgba(226,226,224,.4);
   }
-  .receipt-line .rl-name{ flex:1; line-height:1.35; }
-  .receipt-line .rl-name .ja{ display:block; font-size:10.5px; opacity:.85; margin-top:1px; }
-  .receipt-line .rl-qty{ opacity:.9; font-weight:600; white-space:nowrap; }
+  .receipt-line .rl-name{ flex:1; line-height:1.4; font-weight:700; }
+  .receipt-line .rl-name .ja{ display:block; font-size:11.5px; opacity:.85; margin-top:2px; font-weight:400; }
+  .receipt-line .rl-qty{ opacity:.9; font-weight:700; white-space:nowrap; }
   .receipt-line .rl-cost{ white-space:nowrap; font-weight:700; }
   .co-change{
     display:flex; justify-content:space-between; padding-top:10px; margin-top:4px;
-    font-family:"Courier New", monospace; font-size:12.5px; color:var(--bg); font-weight:700;
+    font-family:"Courier New", monospace; font-size:14.5px; color:var(--bg); font-weight:700;
     flex-shrink:0; font-variant-numeric: slashed-zero;
   }
-  .co-note{ font-size:8.5px; color:var(--bg); opacity:.85; font-weight:600; margin-top:14px; letter-spacing:.03em; text-align:center; flex-shrink:0; }
+  .co-thanks{
+    text-align:center; font-size:11px; font-weight:700; color:var(--bg);
+    margin-top:14px; letter-spacing:.1em;
+  }
+  .co-thanks .ja{ display:block; font-size:10px; font-weight:400; opacity:.85; margin-top:3px; letter-spacing:.02em; }
+  .co-note{ font-size:8.5px; color:var(--bg); opacity:.85; font-weight:600; margin-top:12px; letter-spacing:.03em; text-align:center; flex-shrink:0; }
 
   /* --- loading screen --- */
   .loading-screen{
@@ -306,6 +434,7 @@
     transition: opacity .5s ease;
   }
   .loading-screen.hide{ opacity:0; pointer-events:none; }
+  .loading-screen.gone{ display:none !important; }
   .planet-wrap{ width:150px; height:150px; margin-bottom:26px; }
   .planet-svg{ width:100%; height:100%; animation: planetBreathe 3.2s ease-in-out infinite; }
   @keyframes planetBreathe{
@@ -341,8 +470,8 @@
 <div class="loading-screen" id="loadingScreen">
   <div class="planet-wrap">
     <svg class="planet-svg" viewBox="0 0 200 200">
-      <ellipse cx="100" cy="100" rx="95" ry="22" fill="none" stroke="#ff3d00" stroke-width="7" transform="rotate(-18 100 100)"/>
-      <circle cx="100" cy="100" r="54" fill="#ff3d00"/>
+      <ellipse cx="100" cy="100" rx="95" ry="22" fill="none" stroke="var(--orange)" stroke-width="7" transform="rotate(-18 100 100)"/>
+      <circle cx="100" cy="100" r="54" fill="var(--orange)"/>
     </svg>
   </div>
   <div class="loading-logo">
@@ -374,21 +503,13 @@
         <div class="points-row" id="pointsTopRow"></div>
         <div class="points-row" id="pointsBottomRow"></div>
       </div>
-      <div class="ticker-wrap" id="tickerWrap">
-        <div class="ticker-text" id="tickerText"></div>
-      </div>
     </div>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="charge">Charge</div>
-    <div class="tab" data-tab="shop">Shop</div>
-    <div class="tab" data-tab="log">Log</div>
-  </div>
+  <div class="owned-row" id="ownedRow"></div>
 
   <div class="panels">
     <div class="panel active" id="panel-charge">
-      <div class="owned-row" id="ownedRow"></div>
       <div class="stage">
         <div class="mult-bubble" id="multBubble">×1.00</div>
         <div id="gaugeDots"></div>
@@ -400,12 +521,15 @@
         </div>
       </div>
       <div class="footer">
-        <div class="rate" id="rateLabel">Hold longer to raise the multiplier → release to bank it</div>
+        <div class="lonely-row">
+          <div class="lonely-label">LONELINESS</div>
+          <div class="lonely-bar"><div class="lonely-fill" id="lonelyFill"></div></div>
+        </div>
       </div>
     </div>
 
     <div class="panel" id="panel-shop">
-      <div class="shop-hint">Spend points on upgrades</div>
+      <div class="shop-hint">the only door that still opens / まだ開く唯一の扉</div>
       <div id="shopList"></div>
     </div>
 
@@ -416,14 +540,60 @@
       <div class="shop-hint">Signal history / 受信履歴</div>
       <div id="newsLogList"></div>
     </div>
+
+    <div class="panel" id="panel-news">
+      <div class="shop-hint">old dish, still catching signals / 古いアンテナが、今も何かを拾っている</div>
+      <div class="satellite-dish">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="46" fill="none" stroke="var(--orange)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="4" fill="var(--orange)"/>
+          <line x1="60" y1="60" x2="95" y2="25" stroke="var(--orange)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="ticker-static" id="newsFeedText">Standing by for signal...</div>
+      <div class="satellite-log" id="satelliteLog"></div>
+    </div>
   </div>
 
   <button class="checkout-fab" id="checkoutBtn" aria-label="Call staff to pay out"></button>
   <div class="checkout-label">Call Staff<br>店員を呼ぶ</div>
 
+  <div class="crew-screen" id="crewScreen">
+    <div class="crew-card">
+      <div class="crew-close" id="crewCloseBtn">✕</div>
+      <div class="crew-label">Crew Manifest / 乗員名簿</div>
+      <div class="crew-count">1<span class="crew-count-of">/12</span></div>
+      <div class="crew-grid" id="crewGrid"></div>
+      <div class="crew-day" id="crewDay">DAY 1</div>
+      <div class="crew-note">You are the only one left aboard.<br>この船には、あなたしか残っていません。</div>
+
+      <div class="crew-reset-row">
+        <span class="crew-reset-text">Start over completely? / 全て初めからやり直しますか？</span>
+        <span class="crew-reset-yn">
+          <button class="crew-yn-btn" id="crewResetYBtn">Y</button>
+          <button class="crew-yn-btn" id="crewResetNBtn">N</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-screen" id="resetConfirmScreen">
+    <div class="confirm-card">
+      <div class="confirm-text">This will erase everything and start over from Day 1.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">全てのデータが消去され、最初からやり直しになります。よろしいですか？</span></div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" id="resetCancelBtn">Cancel</button>
+        <button class="confirm-btn ok" id="resetOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lonely-ad" id="lonelyAd">
+    <div class="lonely-ad-cards" id="lonelyAdCards"></div>
+  </div>
+
   <div class="confirm-screen" id="confirmScreen">
     <div class="confirm-card">
-      <div class="confirm-text">Redeeming will reset your balance to 0 .CO.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">残高が0 .COにリセットされます。よろしいですか？</span></div>
+      <div class="confirm-text">This will spend all of your current .CO to call the staff.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">現在のポイントを全て消費して店員を呼びますが、よろしいでしょうか？</span></div>
       <div class="confirm-buttons">
         <button class="confirm-btn cancel" id="confirmCancelBtn">Cancel</button>
         <button class="confirm-btn ok" id="confirmOkBtn">Confirm</button>
@@ -434,25 +604,70 @@
   <div class="checkout-screen" id="checkoutModal">
     <div class="checkout-card">
       <div class="co-close" id="modalCloseBtn">✕</div>
-      <div class="co-label">Galactic Trade Co. — Balance<br>銀河通商会社 — 残高</div>
+      <div class="co-receipt-header">
+        <div class="biz">.CO TRADE POST</div>
+        <div class="biz-ja">銀河通商会社 .co 交易所</div>
+        <div class="stamp">RECEIPT</div>
+      </div>
+      <div class="co-label">Total Spent / 消費した.CO</div>
       <div class="co-score"><span id="modalScore">0</span><span class="unit">.CO</span></div>
-      <div class="co-sub">Itemized purchase receipt / 購入明細</div>
+      <div class="co-sub">— ITEMIZED RECEIPT / 領収明細 —</div>
       <div class="co-divider"></div>
       <div class="co-receipt" id="receiptList"></div>
       <div class="co-divider"></div>
       <div class="co-change"><span>CHANGE DUE / お釣り</span><span id="modalChange">0 .CO</span></div>
+      <div class="co-thanks">THANK YOU FOR SHOPPING AT .CO<span class="ja">またのご利用をお待ちしております</span></div>
     </div>
   </div>
 
+</div>
+
+<div class="minimap-dock">
+  <div class="minimap">
+    <div class="colony-name">COLONY .CO-12 / .CO-12コロニー</div>
+    <svg viewBox="0 0 400 54" class="minimap-svg">
+      <!-- connecting corridors -->
+      <line class="room-connector" x1="36" y1="27" x2="46" y2="27"/>
+      <line class="room-connector" x1="126" y1="27" x2="132" y2="27"/>
+      <line class="room-connector" x1="212" y1="27" x2="218" y2="27"/>
+      <line class="room-connector" x1="298" y1="27" x2="318" y2="27"/>
+
+      <!-- WC: 押すと乗員数が確認できる。他の部屋より小さめの単独区画 -->
+      <g class="room-group" id="wcGroup">
+        <rect class="room-rect wc-rect" x="2" y="10" width="34" height="34"/>
+        <text class="room-label deco" x="19" y="30">WC</text>
+      </g>
+
+      <g class="room-group" data-room="shop">
+        <rect class="room-rect" x="46" y="2" width="80" height="50"/>
+        <text class="room-label" x="86" y="30">SHOP</text>
+      </g>
+      <g class="room-group" data-room="charge">
+        <rect class="room-rect" x="132" y="2" width="80" height="50"/>
+        <text class="room-label" x="172" y="30">MAIN</text>
+      </g>
+      <g class="room-group" data-room="log">
+        <rect class="room-rect" x="218" y="2" width="80" height="50"/>
+        <text class="room-label" x="258" y="30">STORAGE</text>
+      </g>
+      <g class="room-group" data-room="news">
+        <circle class="room-rect" cx="343" cy="27" r="25"/>
+        <text class="room-label" x="343" y="30">SATELLITE</text>
+      </g>
+    </svg>
+  </div>
 </div>
 
 <script>
 (function(){
   const loadingScreen = document.getElementById('loadingScreen');
   let loadingReady = false;
+  let loadingDismissed = false;
   function hideLoading(){
-    if(!loadingReady) return;
+    if(!loadingReady || loadingDismissed) return;
+    loadingDismissed = true;
     loadingScreen.classList.add('hide');
+    setTimeout(()=>{ loadingScreen.classList.add('gone'); }, 600);
   }
   setTimeout(()=>{
     loadingReady = true;
@@ -500,17 +715,33 @@
   const shopListEl = document.getElementById('shopList');
   const logListEl = document.getElementById('logList');
   const newsLogListEl = document.getElementById('newsLogList');
-  const tabs = document.querySelectorAll('.tab');
   const panels = document.querySelectorAll('.panel');
   const gaugeDotsEl = document.getElementById('gaugeDots');
   const ownedRowEl = document.getElementById('ownedRow');
   const checkoutBtn = document.getElementById('checkoutBtn');
+  const checkoutLabelEl = document.querySelector('.checkout-label');
   const checkoutModal = document.getElementById('checkoutModal');
   const modalScoreEl = document.getElementById('modalScore');
   const receiptListEl = document.getElementById('receiptList');
   const modalChangeEl = document.getElementById('modalChange');
   const changeRowEl = document.querySelector('.co-change');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const lonelyFillEl = document.getElementById('lonelyFill');
+  const crewDayEl = document.getElementById('crewDay');
+  const wcGroupEl = document.getElementById('wcGroup');
+  const crewScreenEl = document.getElementById('crewScreen');
+  const crewCloseBtnEl = document.getElementById('crewCloseBtn');
+  const crewGridEl = document.getElementById('crewGrid');
+  const crewResetYBtnEl = document.getElementById('crewResetYBtn');
+  const crewResetNBtnEl = document.getElementById('crewResetNBtn');
+  const resetConfirmScreenEl = document.getElementById('resetConfirmScreen');
+  const resetCancelBtnEl = document.getElementById('resetCancelBtn');
+  const resetOkBtnEl = document.getElementById('resetOkBtn');
+  const lonelyAdEl = document.getElementById('lonelyAd');
+  const lonelyAdCardsEl = document.getElementById('lonelyAdCards');
+  const newsFeedTextEl = document.getElementById('newsFeedText');
+  const satelliteLogEl = document.getElementById('satelliteLog');
+  const roomGroups = document.querySelectorAll('.room-group');
 
   const BASE_RATE_START = 12;
   const MULT_PER_SEC_START = 0.15;
@@ -518,6 +749,10 @@
 
   let points = 0;
   let bestHold = 0;
+  let totalSpentEver = 0;
+  let lonely = 100;
+  let latestSignal = null;
+  let colonyDay = 1;
   let holding = false;
   let startTime = 0;
   let rafId = null;
@@ -525,6 +760,71 @@
   let lastTickTime = 0;
   let lastTierPlayed = 1;
 
+  let ignoredAdCount = 0;
+  let checkoutFromLonelyAd = false;
+
+  function updateLonelyBar(){ lonelyFillEl.style.width = Math.max(lonely, 0) + '%'; }
+  function decreaseLonely(amount){
+    lonely = Math.max(lonely - amount, 0);
+    updateLonelyBar();
+    if(lonely <= 0){
+      showLonelyAdStack();
+    }
+  }
+  function showLonelyAdStack(){
+    const count = Math.max(ignoredAdCount + 1, 1);
+    lonelyAdCardsEl.innerHTML = '';
+    const cardW = 320, cardH = 230;
+    for(let i = 0; i < count; i++){
+      const maxX = Math.max(window.innerWidth - cardW - 24, 24);
+      const maxY = Math.max(window.innerHeight - cardH - 24, 24);
+      const x = 12 + Math.random() * (maxX - 12);
+      const y = 12 + Math.random() * (maxY - 12);
+
+      const card = document.createElement('div');
+      card.className = 'lonely-ad-card';
+      card.style.left = x + 'px';
+      card.style.top = y + 'px';
+      card.style.zIndex = String(10 + i);
+      card.innerHTML =
+        '<div class="lonely-ad-close">✕</div>' +
+        '<div class="lonely-ad-title">Feeling alone tonight?<br>今夜も、ひとりですか？</div>' +
+        '<div class="lonely-ad-sub">Someone is always ready to talk at .co.<br>.coなら、いつでも誰かが話を聞いてくれます。</div>' +
+        '<button class="lonely-ad-btn">Call Staff</button>';
+
+      card.querySelector('.lonely-ad-close').addEventListener('click', ()=> dismissOneLonelyAd(card));
+      card.querySelector('.lonely-ad-btn').addEventListener('click', ()=> callStaffFromLonelyAd(card));
+
+      lonelyAdCardsEl.appendChild(card);
+    }
+    lonelyAdEl.classList.add('show');
+  }
+  // カードを1枚だけ無視して閉じる。ロンリネスは半分だけ回復。全部閉じ終えたら次回はさらに1枚増える
+  function dismissOneLonelyAd(card){
+    card.remove();
+    ignoredAdCount += 1;
+    lonely = Math.min(lonely + 50, 100);
+    updateLonelyBar();
+    saveState();
+    if(lonelyAdCardsEl.children.length === 0){
+      lonelyAdEl.classList.remove('show');
+    }
+  }
+  // カードから直接「Call Staff」。会計が成立すれば残りのカードもまとめて片付く
+  function callStaffFromLonelyAd(card){
+    checkoutFromLonelyAd = true;
+    lonelyAdEl.classList.remove('show');
+    confirmScreen.classList.add('show');
+  }
+  // 会計が実際に成立した場合のみ: ロンリネスは満タン回復し、無視カウント・残っていたカードも全てリセット
+  function resolveLonelyAdSuccess(){
+    ignoredAdCount = 0;
+    lonelyAdCardsEl.innerHTML = '';
+    lonelyAdEl.classList.remove('show');
+    lonely = 100;
+    updateLonelyBar();
+    saveState();
+  }
   // --- haptic feedback only (audio removed) ---
   function vibrate(pattern){
     if(navigator.vibrate){
@@ -533,25 +833,57 @@
   }
 
   const upgrades = [
-    { id:'generator', name:'Generator', nameJa:'発電機', icon:'bolt', desc:'Passive income even while idle (+0.4pt/sec per Lv)', level:0, baseCost:40, costMult:1.16 },
+    { id:'generator', name:'Generator', nameJa:'発電機', icon:'bolt', desc:'Passive income while idle — scales up with each level', level:0, baseCost:40, costMult:1.16 },
     { id:'amp', name:'Amplifier', nameJa:'増幅コイル', icon:'diamond', desc:'Multiplier grows faster while holding (+0.03/sec per Lv)', level:0, baseCost:70, costMult:1.2 },
     { id:'boost', name:'Booster', nameJa:'蓄圧ブースター', icon:'battery', desc:'Higher base rate on release (+2pt per Lv)', level:0, baseCost:100, costMult:1.22 },
-    { id:'startmult', name:'Igniter', nameJa:'初期倍率装置', icon:'spark', desc:'Higher starting multiplier before you even hold (+0.1 per Lv)', level:0, baseCost:160, costMult:1.28 }
+    { id:'startmult', name:'Igniter', nameJa:'初期倍率装置', icon:'spark', desc:'Higher starting multiplier — scales up with each level', level:0, baseCost:160, costMult:1.28 }
   ];
 
   function getUpgrade(id){ return upgrades.find(u => u.id === id); }
   function costFor(u){ return Math.ceil(u.baseCost * Math.pow(u.costMult, u.level)); }
 
-  function currentIdleRate(){ return IDLE_RATE_START + getUpgrade('generator').level * 0.4; }
+  // レベルが上がるほど、1レベルあたりの伸び幅自体も大きくなる(相対的に弱く感じないように)
+  function currentIdleRate(){
+    const lv = getUpgrade('generator').level;
+    return IDLE_RATE_START + 0.4 * lv + 0.06 * lv * lv;
+  }
   function currentBaseRate(){ return BASE_RATE_START + getUpgrade('boost').level * 2; }
   function currentMultPerSec(){ return MULT_PER_SEC_START + getUpgrade('amp').level * 0.03; }
-  function currentStartMultBonus(){ return getUpgrade('startmult').level * 0.1; }
+  function currentStartMultBonus(){
+    const lv = getUpgrade('startmult').level;
+    return 0.1 * lv + 0.025 * lv * lv;
+  }
   function currentMultiplier(sec){ return 1 + currentStartMultBonus() + sec * currentMultPerSec(); }
 
   const POINTS_DIGITS = 15;
   function formatNum(n){ return Math.floor(n).toLocaleString('en-US'); }
   function formatPoints(n){ return Math.floor(Math.max(0,n)).toString().padStart(POINTS_DIGITS, '0'); }
   function formatDec(n, d){ return n.toFixed(d); }
+
+  // --- digit cap system: starts at 5 digits (99999), unlocked further via cumulative spending ---
+  const DIGIT_THRESHOLDS = (function(){
+    const list = [];
+    let ratio = 0.6;
+    for(let d = 6; d <= POINTS_DIGITS; d++){
+      const prevCap = Math.pow(10, d - 1) - 1;
+      list.push({ digits: d, threshold: Math.round(prevCap * ratio) });
+      ratio = Math.max(ratio - 0.05, 0.1);
+    }
+    return list;
+  })();
+  function currentUnlockedDigits(){
+    let unlocked = 5;
+    for(const t of DIGIT_THRESHOLDS){
+      if(totalSpentEver >= t.threshold) unlocked = t.digits;
+      else break;
+    }
+    return unlocked;
+  }
+  function currentCap(){ return Math.pow(10, currentUnlockedDigits()) - 1; }
+  function nextDigitThreshold(){
+    const unlocked = currentUnlockedDigits();
+    return DIGIT_THRESHOLDS.find(t => t.digits > unlocked) || null;
+  }
 
   function tierFor(sec){
     if(sec >= 7) return 3;
@@ -666,17 +998,51 @@
     pointsTopRowEl.style.fontSize = size + 'px';
     pointsBottomRowEl.style.fontSize = size + 'px';
     bottomDigits[7].style.fontSize = (size * 0.7) + 'px';
+    // 上下の行でセル1つあたりの幅・高さが1pxでもズレないよう、実測してグリッド自体に固定値を適用
+    pointsTopRowEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    pointsBottomRowEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    topDigits.forEach(d => { d.style.height = 'auto'; });
+    bottomDigits.forEach(d => { d.style.height = 'auto'; });
+    const topH = topDigits[0].getBoundingClientRect().height;
+    const bottomHCandidates = bottomDigits.slice(0, 7).map(d => d.getBoundingClientRect().height);
+    const finalH = Math.max(topH, ...bottomHCandidates);
+    topDigits.forEach(d => { d.style.height = finalH + 'px'; });
+    bottomDigits.forEach(d => { d.style.height = finalH + 'px'; });
+
+    // 列幅を実測し、上下で同じpx値のグリッドに固定する(理論上ズレる余地を無くす)
+    const colWidthPx = topDigits[0].getBoundingClientRect().width;
+    const fixedCols = 'repeat(8, ' + colWidthPx + 'px)';
+    pointsTopRowEl.style.gridTemplateColumns = fixedCols;
+    pointsBottomRowEl.style.gridTemplateColumns = fixedCols;
   }
   window.addEventListener('resize', applyDigitFontSize);
 
   let displayedPoints = 0;
-  function renderDigits(value){
-    const full = formatPoints(value);
+  let unlockedDigitsCache = 5;
+  function refreshDigitLocks(){
+    unlockedDigitsCache = currentUnlockedDigits();
+    const lockedCount = POINTS_DIGITS - unlockedDigitsCache;
     for(let i = 0; i < 8; i++){
-      topDigits[i].textContent = full[i];
+      const isLocked = i < lockedCount;
+      topDigits[i].classList.toggle('locked', isLocked);
+      if(isLocked) topDigits[i].textContent = '';
     }
     for(let i = 0; i < 7; i++){
-      bottomDigits[i].textContent = full[i + 8];
+      const gi = i + 8;
+      const isLocked = gi < lockedCount;
+      bottomDigits[i].classList.toggle('locked', isLocked);
+      if(isLocked) bottomDigits[i].textContent = '';
+    }
+  }
+  function renderDigits(value){
+    const full = formatPoints(value);
+    const lockedCount = POINTS_DIGITS - unlockedDigitsCache;
+    for(let i = 0; i < 8; i++){
+      if(i >= lockedCount) topDigits[i].textContent = full[i];
+    }
+    for(let i = 0; i < 7; i++){
+      const gi = i + 8;
+      if(gi >= lockedCount) bottomDigits[i].textContent = full[gi];
     }
   }
   function countLoop(){
@@ -762,6 +1128,7 @@
     const gained = sec * currentBaseRate() * mult;
 
     points += gained;
+    points = Math.min(points, currentCap());
     if(sec > bestHold){
       bestHold = sec;
       bestEl.textContent = bestHold.toFixed(1) + 's';
@@ -770,6 +1137,7 @@
     updateHud();
     spawnPopup('+' + formatNum(gained));
     renderShop();
+    decreaseLonely(7);
 
     const strength = Math.min(sec / 8, 1);
     vibrate(sec >= 7 ? [25,30,45] : (sec >= 3 ? [20,20,30] : 35));
@@ -820,6 +1188,7 @@
     const rate = currentIdleRate();
     if(rate > 0){
       points += rate * 0.2;
+      points = Math.min(points, currentCap());
       updateHud();
     }
   }, 200);
@@ -878,16 +1247,29 @@
     });
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', ()=>{
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-      if(tab.dataset.tab === 'shop') renderShop();
-      if(tab.dataset.tab === 'log'){ renderLog(); renderNewsLog(); }
+  function goToRoom(roomId){
+    panels.forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('panel-' + roomId);
+    if(panel) panel.classList.add('active');
+    roomGroups.forEach(g => {
+      if(!g.dataset.room) return;
+      const isCurrent = g.dataset.room === roomId;
+      g.querySelector('.room-rect').classList.toggle('current', isCurrent);
+      g.querySelector('.room-label').classList.toggle('current', isCurrent);
     });
+    const inMainRoom = roomId === 'charge';
+    checkoutBtn.style.display = inMainRoom ? 'flex' : 'none';
+    checkoutLabelEl.style.display = inMainRoom ? 'block' : 'none';
+    if(roomId === 'shop') renderShop();
+    if(roomId === 'log'){ renderLog(); renderNewsLog(); }
+    if(roomId === 'news') refreshNewsFeed();
+  }
+
+  roomGroups.forEach(group => {
+    if(!group.dataset.room) return;
+    group.addEventListener('click', ()=> goToRoom(group.dataset.room));
   });
+  goToRoom('charge');
 
   // --- Galactic Trade Co. catalog & receipt engine ---
   const catalog = [
@@ -974,7 +1356,6 @@
 
   // --- purchase log: accumulates every item ever redeemed ---
   const purchaseLog = {}; // name -> { name, nameJa, cost, icon, qty, spent }
-  let totalSpentEver = 0;
   // stage color: main accent color shifts as the story progresses
   const STAGE_COLORS = [
     { base: '#ff3d00', dim: 'rgba(255,61,0,.58)',   faint: 'rgba(255,61,0,.22)' },   // 0: orange
@@ -994,6 +1375,7 @@
       totalSpentEver += l.subtotal;
     });
     applyStageColors();
+    refreshDigitLocks();
   }
   function renderLog(){
     logListEl.innerHTML = '';
@@ -1045,6 +1427,56 @@
     });
   }
 
+  function advanceColonyDay(){
+    colonyDay += 1;
+    crewDayEl.textContent = 'DAY ' + colonyDay;
+  }
+
+  // --- crew manifest: 12 silhouettes, only 1 (you) in the accent color ---
+  const PERSON_SVG =
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4.5" fill="currentColor"/><path d="M4 22c0-4.7 3.6-8.5 8-8.5s8 3.8 8 8.5" fill="currentColor"/></svg>';
+  function buildCrewGrid(){
+    crewGridEl.innerHTML = '';
+    for(let i = 0; i < 12; i++){
+      const fig = document.createElement('div');
+      fig.className = 'crew-figure';
+      fig.style.color = i === 0 ? 'var(--orange)' : 'var(--ink-dim)';
+      fig.style.opacity = i === 0 ? '1' : '.35';
+      fig.innerHTML = PERSON_SVG;
+      crewGridEl.appendChild(fig);
+    }
+  }
+  function openCrewScreen(){
+    buildCrewGrid();
+    crewScreenEl.classList.add('show');
+  }
+  function closeCrewScreen(){
+    crewScreenEl.classList.remove('show');
+  }
+  wcGroupEl.addEventListener('click', openCrewScreen);
+  crewCloseBtnEl.addEventListener('click', closeCrewScreen);
+  crewScreenEl.addEventListener('click', (e)=>{
+    if(e.target === crewScreenEl) closeCrewScreen();
+  });
+
+  // --- full reset (accessible only from within the WC) ---
+  crewResetYBtnEl.addEventListener('click', ()=>{
+    resetConfirmScreenEl.classList.add('show');
+  });
+  crewResetNBtnEl.addEventListener('click', ()=>{
+    // 何もせず今のままにする
+  });
+  resetCancelBtnEl.addEventListener('click', ()=>{
+    resetConfirmScreenEl.classList.remove('show');
+  });
+  resetOkBtnEl.addEventListener('click', ()=>{
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    location.reload();
+  });
+  resetConfirmScreenEl.addEventListener('click', (e)=>{
+    if(e.target === resetConfirmScreenEl) resetConfirmScreenEl.classList.remove('show');
+  });
+
   function runCheckout(){
     const cr = Math.floor(points);
     modalScoreEl.textContent = formatNum(cr);
@@ -1056,19 +1488,26 @@
     renderLog();
     points = 0;
     updateHud();
+    advanceColonyDay();
     saveState();
     triggerTickerSoon(4000 + Math.random() * 2000);
   }
 
   checkoutBtn.addEventListener('click', ()=>{
+    checkoutFromLonelyAd = false;
     confirmScreen.classList.add('show');
   });
   confirmCancelBtn.addEventListener('click', ()=>{
     confirmScreen.classList.remove('show');
+    // キャンセルした場合、ロンリネスは0のまま(広告経由でも回復させない)
   });
   confirmOkBtn.addEventListener('click', ()=>{
     confirmScreen.classList.remove('show');
     runCheckout();
+    if(checkoutFromLonelyAd){
+      resolveLonelyAdSuccess();
+      checkoutFromLonelyAd = false;
+    }
   });
   confirmScreen.addEventListener('click', (e)=>{
     if(e.target === confirmScreen){
@@ -1099,7 +1538,10 @@
         upgrades: upgrades.map(u => ({ id: u.id, level: u.level })),
         purchaseLog: purchaseLog,
         totalSpentEver: totalSpentEver,
-        newsLog: newsLog
+        newsLog: newsLog,
+        lonely: lonely,
+        latestSignal: latestSignal,
+        colonyDay: colonyDay
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }catch(e){}
@@ -1127,18 +1569,24 @@
         newsLog.length = 0;
         data.newsLog.forEach(t => newsLog.push(t));
       }
+      if(typeof data.lonely === 'number') lonely = data.lonely;
+      if(typeof data.latestSignal === 'string') latestSignal = data.latestSignal;
+      if(typeof data.colonyDay === 'number') colonyDay = data.colonyDay;
     }catch(e){}
   }
   loadState();
   displayedPoints = points;
   bestEl.textContent = bestHold.toFixed(1) + 's';
   applyStageColors();
+  refreshDigitLocks();
+  updateLonelyBar();
+  crewDayEl.textContent = 'DAY ' + colonyDay;
+  if(lonely <= 0){ showLonelyAdStack(); }
   setInterval(saveState, 5000);
   window.addEventListener('beforeunload', saveState);
 
   // --- ticker: merchant ads + a 5-stage story arc tied to digit count ---
-  const tickerWrapEl = document.getElementById('tickerWrap');
-  const tickerEl = document.getElementById('tickerText');
+  // (news feed now lives in the Satellite Room instead of overlaying the counter)
   const adTemplates = [
     (n, c) => n + 'はどうだ？',
     (n, c) => n + 'が今なら' + c + '.COで買えるぞ',
@@ -1362,17 +1810,35 @@
   }
 
   let tickerTimer = null;
+  function isInSatelliteRoom(){
+    const panel = document.getElementById('panel-news');
+    return panel && panel.classList.contains('active');
+  }
+  function refreshNewsFeed(){
+    newsFeedTextEl.textContent = latestSignal || 'Standing by for signal...';
+    satelliteLogEl.innerHTML = '';
+    if(newsLog.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'satellite-log-empty';
+      empty.textContent = 'No past signals yet / まだ過去の受信記録はありません';
+      satelliteLogEl.appendChild(empty);
+      return;
+    }
+    newsLog.forEach((text, i) => {
+      const row = document.createElement('div');
+      row.className = 'satellite-log-item' + (i === 0 ? ' latest' : '');
+      row.textContent = text;
+      satelliteLogEl.appendChild(row);
+    });
+  }
   function showTickerNow(){
     clearTimeout(tickerTimer);
     const msg = pickTickerMessage();
-    tickerEl.textContent = msg;
-    tickerWrapEl.classList.add('show');
+    latestSignal = msg;
     recordNews(msg);
     saveState();
-    setTimeout(()=>{
-      tickerWrapEl.classList.remove('show');
-      scheduleTicker();
-    }, 3200);
+    if(isInSatelliteRoom()) refreshNewsFeed();
+    scheduleTicker();
   }
   function scheduleTicker(){
     const delay = 22000 + Math.random() * 18000;
