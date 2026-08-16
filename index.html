@@ -342,7 +342,7 @@
   <div class="loading-logo">
     <span class="loading-ext">.CO</span>
   </div>
-  <div class="loading-tagline">Spend your life force. Live conveniently.<br>寿命を使って、便利な暮らしを。</div>
+  <div class="loading-tagline">Spend your Power. Live conveniently.<br>パワーを使って、便利な暮らしを。</div>
   <div class="loading-status">CONNECTING TO .CO<span class="dots">...</span></div>
   <div class="loading-prompt">Welcome to .co — Touch to Enter</div>
 </div>
@@ -1104,6 +1104,43 @@
     (n, c) => '新入荷: ' + n
   ];
 
+  // .co自体が肥大化・拡大していく、もう一つのストーリーライン（各フェーズで内容が進行）
+  const coGrowth0 = [
+    '.co、新規登録コロニー数が過去最多を更新',
+    '.co、取扱アイテム数が3倍に拡大',
+    '.co、孤立コロニー向け配信網を新たに開設',
+    '.coの利用者満足度、過去最高を記録',
+    '.co、次期モデルの受信端末を全コロニーへ配布予定',
+    '.co、"もっと便利な暮らしを"を新スローガンに'
+  ];
+  const coGrowth1 = [
+    '.co、取引規模が地球経済の一部門に匹敵と試算',
+    '.co、新たに軍需関連の取扱いを開始との噂',
+    '.co、戦時特需で利用者数が急増',
+    '.co本社、正体不明のまま組織を拡大中',
+    '.co、"どんな時も、あなたのそばに"と広告展開'
+  ];
+  const coGrowth2 = [
+    '.co、地球外全コロニーへの接続をほぼ独占',
+    '.co、水資源関連アイテムの取扱いを大幅拡大',
+    '.co本社の所在地、依然として非公開',
+    '.co、"物資不足の今こそ、.coを"とキャンペーン',
+    '.co利用規約、何度目かの改定—内容は非公開のまま'
+  ];
+  const coGrowth3 = [
+    '.co、"完成体"向け商品ラインを新設',
+    '.co、人類の機械化プロジェクトへの関与が一部で指摘される',
+    '.co、もはや会社という説明では足りない規模に',
+    '.co、取引の大半が自動化されたと発表',
+    '.co、問い合わせ窓口の"人間"担当者が消滅'
+  ];
+  const coGrowth4 = [
+    '.co、稼働を継続中——利用者はあなた一人のみ',
+    '.co、あなたのためだけに存在し続けている',
+    '.coのサーバーだけが、今も明かりを灯している',
+    '.co、それでも新商品の入荷を続けている'
+  ];
+
   // Stage 0（5桁未満）: 来訪の事実を淡々と報じる「ニュース」。安心材料と不安材料を両方混ぜる
   const stage0News = [
     // 来訪 — 中立的な観測報道
@@ -1190,6 +1227,10 @@
     const pools = [stage0News, stage1News, stage2News, stage3News, stage4News];
     return pools[storyStageIndex()];
   }
+  function getCoGrowthPool(){
+    const pools = [coGrowth0, coGrowth1, coGrowth2, coGrowth3, coGrowth4];
+    return pools[storyStageIndex()];
+  }
 
   function applyStageColors(){
     const c = STAGE_COLORS[storyStageIndex()];
@@ -1210,13 +1251,16 @@
   function pickTickerMessage(){
     const roll = Math.random();
     let msg;
-    if(roll < 0.35){
+    if(roll < 0.3){
       const item = catalog[Math.floor(Math.random() * catalog.length)];
       const tmpl = adTemplates[Math.floor(Math.random() * adTemplates.length)];
       msg = '【商人】' + tmpl(item.nameJa, item.cost);
-    } else {
+    } else if(roll < 0.75){
       const pool = getStoryPool();
       msg = '【NEWS】' + pool[Math.floor(Math.random() * pool.length)];
+    } else {
+      const pool = getCoGrowthPool();
+      msg = '【.co】' + pool[Math.floor(Math.random() * pool.length)];
     }
     if(Math.random() < 0.16){
       msg = glitchify(msg);
