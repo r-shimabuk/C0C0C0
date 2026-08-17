@@ -1914,4 +1914,1920 @@
 })();
 </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#e2e2e0">
+<title>.CO</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20fill='%23ff3d00'/%3E%3Ctext%20x='50'%20y='62'%20font-family='Arial,Helvetica,sans-serif'%20font-weight='700'%20font-size='34'%20fill='%23ffffff'%20text-anchor='middle'%3E.CO%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20fill='%23ff3d00'/%3E%3Ctext%20x='50'%20y='62'%20font-family='Arial,Helvetica,sans-serif'%20font-weight='700'%20font-size='34'%20fill='%23ffffff'%20text-anchor='middle'%3E.CO%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --bg: #e2e2e0;
+    --ink: #2c2b25;
+    --ink-dim: rgba(44,43,37,.62);
+    --orange: #ff3d00;
+    --orange-dim: rgba(255,61,0,.58);
+    --orange-faint: rgba(255,61,0,.22);
+    --white: #ffffff;
+  }
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
+  html,body{
+    margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family: "Space Grotesk", sans-serif;
+    overflow:hidden;
+  }
+
+  .page-bg{
+    position:fixed; inset:0; background:var(--bg); z-index:-1;
+  }
+  .wrap{
+    height:100%; display:flex; flex-direction:column; align-items:center;
+    padding:20px 16px 18px; position:relative;
+    background:var(--bg);
+  }
+  .hud{ width:100%; max-width:420px; flex-shrink:0; }
+  .brand-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:8px; }
+  .brand{ font-size:10px; letter-spacing:.3em; color:var(--ink-dim); text-transform:uppercase; font-weight:600; }
+  .brand-ext{ font-size:9px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:1px 5px; font-weight:700; }
+  .hud .toprow{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:10.5px; letter-spacing:.14em; color:var(--ink-dim); font-weight:500;
+    text-transform:uppercase;
+  }
+  .hud .idle{ color:var(--ink-dim); font-size:11px; font-weight:400; }
+  .hud .best{ color:var(--ink); font-size:20px; font-weight:600; margin-top:2px; letter-spacing:.02em; }
+  .points-wrap{ position:relative; width:100%; }
+  .points-block{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .points-row{ width:100%; display:grid; grid-template-columns:repeat(8, 1fr); gap:4px; align-items:start; }
+  .digit{
+    font-family:"Space Grotesk", sans-serif;
+    font-weight:600; color:var(--orange); letter-spacing:0;
+    line-height:1; text-align:center;
+    font-variant-numeric: tabular-nums slashed-zero;
+    border:1.5px solid var(--orange); border-radius:2px; padding:4px 0;
+    display:flex; align-items:center; justify-content:center;
+    box-sizing:border-box;
+  }
+  .digit.brand-digit{ letter-spacing:-.05em; border:none; align-items:flex-end; padding-bottom:2px; }
+  .digit.locked{
+    color:transparent; border-color:var(--orange);
+    background-image:
+      linear-gradient(to bottom right, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
+      linear-gradient(to bottom left, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+    background-repeat:no-repeat;
+  }
+
+  .minimap{ width:100%; max-width:420px; margin:14px auto 4px; flex-shrink:0; }
+  .minimap-svg{ width:100%; height:auto; display:block; margin:0 auto; }
+  .room-connector{ stroke:var(--ink-dim); stroke-width:1.5; }
+  .room-rect{ fill:transparent; stroke:var(--ink-dim); stroke-width:1.5; transition:fill .2s ease, stroke .2s ease; cursor:pointer; }
+  .room-rect.wc-rect{ stroke-width:1.5; }
+  .room-group{ cursor:pointer; }
+  .room-rect.current{ fill:var(--orange); stroke:var(--orange); }
+  .room-label{
+    font-family:"Space Grotesk", sans-serif; font-size:9px; font-weight:700;
+    fill:var(--ink-dim); text-anchor:middle; pointer-events:none; letter-spacing:0;
+  }
+  .room-label.current{ fill:var(--bg); }
+  .room-label.compact{ font-size:7.5px; }
+
+  .tabs{ width:100%; max-width:420px; display:flex; gap:0; margin:14px 0 12px; flex-shrink:0; }
+  .tab{
+    flex:1; text-align:center; padding:8px 2px 10px; font-size:9px; letter-spacing:.05em;
+    border:none; background:transparent; color:var(--ink-dim);
+    cursor:pointer; font-weight:500; text-transform:uppercase;
+    border-bottom:2px solid transparent;
+  }
+  .tab.active{ color:var(--orange); font-weight:700; border-bottom-color:var(--orange); }
+
+  .panels{ flex:1; width:100%; max-width:420px; display:flex; overflow:hidden; min-height:0; }
+  .panel{ display:none; width:100%; flex-direction:column; align-items:center; min-height:0; }
+  .panel.active{ display:flex; }
+
+  /* --- charge panel --- */
+  #panel-charge{ justify-content:flex-start; }
+  .stage{ position:relative; width:184px; height:184px; display:flex; align-items:center; justify-content:center; margin-bottom:26px; margin-top:36px; }
+  #gaugeDots{ position:absolute; inset:0; }
+  .gdot{
+    position:absolute; width:5px; height:5px; border-radius:50%;
+    background:transparent; border:1.5px solid var(--orange-faint);
+    transform:translate(-50%,-50%);
+    transition: background .12s ease, border-color .12s ease, transform .12s ease;
+  }
+  .gdot.lit{ background:var(--orange); border-color:var(--orange); transform:translate(-50%,-50%) scale(1.2); }
+
+  .mult-bubble{
+    position:absolute; top:-34px; left:50%; transform:translateX(-50%) scale(.9);
+    font-family:"Space Grotesk", sans-serif; font-weight:600; font-size:20px;
+    color:var(--orange); background:var(--bg); padding:4px 12px;
+    border:1.5px solid var(--orange); opacity:0; transition:opacity .12s ease, transform .12s ease;
+    white-space:nowrap; font-variant-numeric: tabular-nums slashed-zero;
+  }
+  .mult-bubble.show{ opacity:1; transform:translateX(-50%) scale(1); }
+
+  .core{
+    width:148px; height:148px; border-radius:50%;
+    background: var(--orange);
+    border:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; position:relative; touch-action:none;
+    transition: box-shadow .15s ease;
+  }
+  .core:active{ transform:scale(.98); }
+  .core .verb{ font-size:10px; letter-spacing:.22em; color:var(--white); font-weight:600; text-transform:uppercase; }
+  .core .hold-time{
+    font-family:"Space Grotesk", sans-serif;
+    font-weight:600; font-size:32px; color:var(--white);
+    margin-top:4px; line-height:1; font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .core.charging{ box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--orange); }
+  .core.tier2{ box-shadow: 0 0 0 4px var(--bg), 0 0 0 7px var(--orange); }
+  .core.tier3{ box-shadow: 0 0 0 4px var(--bg), 0 0 0 9px var(--orange); }
+
+  @keyframes releasePulse{
+    0%{ transform:scale(.95); }
+    45%{ transform:scale(1.1); }
+    100%{ transform:scale(1); }
+  }
+  .core.release{ animation: releasePulse .38s cubic-bezier(.34,1.56,.64,1); }
+
+  .burst-ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:2px solid var(--orange); opacity:0; pointer-events:none;
+  }
+  @keyframes burstWave1{
+    0%{ transform:scale(.72); opacity:.8; border-width:3px; }
+    100%{ transform:scale(1.7); opacity:0; border-width:.5px; }
+  }
+  @keyframes burstWave2{
+    0%{ transform:scale(.72); opacity:.5; border-width:2px; }
+    100%{ transform:scale(2.15); opacity:0; border-width:.5px; }
+  }
+  .burst-ring.ring1.play{ animation: burstWave1 var(--burst-dur, .55s) cubic-bezier(.17,.75,.25,1) forwards; }
+  .burst-ring.ring2.play{ animation: burstWave2 calc(var(--burst-dur, .55s) + .12s) cubic-bezier(.17,.75,.25,1) forwards; animation-delay:.05s; }
+
+  .footer{ width:100%; text-align:left; flex-shrink:0; padding:0 8px; margin-top:auto; }
+  .ticker-wrap{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:100vw; z-index:5; opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  .ticker-wrap.show{ opacity:1; }
+  .ticker-text{
+    background:var(--orange); color:var(--bg); font-weight:700;
+    font-family:"Courier New", monospace; font-size:11px;
+    text-align:center; padding:10px 24px; letter-spacing:.02em;
+  }
+  .lonely-row{ display:flex; align-items:center; gap:10px; }
+  .lonely-label{ font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:600; white-space:nowrap; }
+  .lonely-bar{ width:60%; max-width:220px; height:6px; border:1.5px solid var(--orange); position:relative; overflow:hidden; flex-shrink:0; }
+  .lonely-fill{ position:absolute; inset:0; background:var(--orange); width:100%; transition:width .3s ease; transform-origin:left; }
+
+  .satellite-dish{ width:110px; height:110px; margin:18px auto 20px; }
+  .satellite-dish svg{ width:100%; height:100%; }
+  .dish-needle{
+    transform-origin:60px 60px;
+    animation: dishSpin 3.2s linear infinite;
+  }
+  @keyframes dishSpin{
+    0%{ transform:rotate(0deg); } 100%{ transform:rotate(360deg); }
+  }
+  .ticker-static{
+    font-family:"Courier New", monospace; font-size:12px; color:var(--orange); font-weight:700;
+    text-align:center; padding:0 20px; line-height:1.7; min-height:60px;
+  }
+
+  /* --- loneliness ad popup: real stacked cards, each closed individually --- */
+  .lonely-ad{
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:70;
+    display:none; padding:0;
+  }
+  .lonely-ad.show{ display:block; }
+  .lonely-ad-cards{ position:absolute; inset:0; }
+  .lonely-ad-card{
+    background:var(--orange); width:calc(100% - 48px); max-width:320px; padding:26px 22px;
+    text-align:center; position:fixed;
+  }
+  .lonely-ad-count{
+    position:absolute; top:12px; left:14px; color:var(--bg); font-size:11px;
+    font-weight:700; letter-spacing:.04em;
+  }
+  .lonely-ad-close{ position:absolute; top:12px; right:14px; color:var(--bg); font-size:16px; cursor:pointer; }
+  .lonely-ad-title{ font-size:14px; font-weight:700; color:var(--bg); margin-bottom:10px; line-height:1.5; }
+  .lonely-ad-sub{ font-size:11px; color:var(--bg); opacity:.85; line-height:1.7; margin-bottom:18px; }
+  .lonely-ad-btn{
+    background:var(--bg); color:var(--orange); border:none; padding:11px 22px;
+    font-family:inherit; font-weight:700; font-size:11px; letter-spacing:.05em;
+    text-transform:uppercase; cursor:pointer;
+  }
+  .owned-row{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    min-height:26px; margin:10px 0 0; width:100%; max-width:420px;
+  }
+  .owned-badge{
+    display:flex; align-items:center; gap:5px; background:transparent;
+    border:1px solid var(--orange); border-radius:2px; padding:5px 10px;
+    font-size:11.5px; font-weight:500; color:var(--ink);
+  }
+  .owned-badge svg{ width:13px; height:13px; color:var(--orange); }
+
+  .popup{
+    position:fixed; font-weight:600;
+    color:var(--orange); font-size:19px; pointer-events:none; z-index:10;
+    animation: floatUp .9s ease-out forwards; font-family:"Space Grotesk", sans-serif;
+  }
+  @keyframes floatUp{
+    0%{ transform:translateY(0); opacity:1; }
+    100%{ transform:translateY(-70px); opacity:0; }
+  }
+
+  /* --- shop panel --- */
+  #panel-shop, #panel-log, #panel-news{ overflow-y:auto; padding-top:4px; align-items:stretch; -webkit-overflow-scrolling:touch; touch-action:pan-y; min-height:0; }
+  .shop-item{
+    border:1.5px solid var(--orange); background:transparent; border-radius:2px; padding:14px 14px;
+    margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .shop-item.afford{ background:var(--orange-faint); border-color:var(--orange); }
+  .shop-icon{ flex-shrink:0; width:26px; height:26px; color:var(--orange); }
+  .shop-icon svg{ width:100%; height:100%; }
+  .shop-info{ flex:1; }
+  .shop-name{ font-size:12px; color:var(--ink); font-weight:600; letter-spacing:.04em; }
+  .shop-name .ja{ font-weight:400; opacity:.8; }
+  .shop-desc{ font-size:10.5px; color:var(--ink-dim); margin-top:5px; line-height:1.6; }
+  .shop-level{ font-size:10px; color:var(--ink-dim); margin-top:6px; font-weight:500; letter-spacing:.05em; }
+  .buy-btn{
+    flex-shrink:0; border:1.5px solid var(--orange); color:var(--ink); background:transparent;
+    border-radius:2px; padding:10px 12px; font-family:inherit; font-size:10.5px; font-weight:600;
+    cursor:pointer; min-width:78px; text-align:center; letter-spacing:.05em; text-transform:uppercase;
+  }
+  .buy-btn:not(:disabled){ background:var(--bg); border-color:var(--orange); color:var(--orange); }
+  .buy-btn:disabled{ opacity:.4; cursor:default; }
+  .buy-btn .cost{ display:block; font-weight:700; margin-top:3px; font-size:12px; letter-spacing:0; text-transform:none; }
+  .shop-hint{ font-size:10px; color:var(--ink-dim); text-align:center; margin:2px 0 12px; letter-spacing:.05em; text-transform:uppercase; }
+
+  /* --- purchase log --- */
+  .log-item{
+    border:1.5px solid var(--orange); background:transparent; border-radius:2px; padding:12px 14px;
+    margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .log-icon{ flex-shrink:0; width:22px; height:22px; color:var(--orange); }
+  .log-icon svg{ width:100%; height:100%; }
+  .log-info{ flex:1; }
+  .log-name{ font-size:12px; color:var(--ink); font-weight:600; letter-spacing:.04em; }
+  .log-name .ja{ font-weight:400; opacity:.8; }
+  .log-total{ font-size:10px; color:var(--ink-dim); margin-top:4px; font-weight:500; }
+  .log-qty{ flex-shrink:0; font-family:"Space Grotesk", sans-serif; font-weight:700; font-size:16px; color:var(--orange); white-space:nowrap; }
+  .log-empty{ font-size:11px; color:var(--ink-dim); text-align:center; margin-top:24px; }
+
+  .log-divider{ border-top:1px dashed var(--ink-dim); opacity:.5; margin:18px 0 14px; }
+  .news-log-item{
+    font-family:"Courier New", monospace; font-size:11px; color:var(--ink);
+    border-bottom:1px dotted var(--orange-faint); padding:8px 2px; line-height:1.5;
+  }
+
+  .satellite-log{
+    width:100%; max-width:340px; margin:18px auto 0; padding-top:14px;
+    border-top:1.5px dashed var(--ink-dim);
+  }
+  .satellite-log-item{
+    font-family:"Courier New", monospace; font-size:11px; color:var(--ink-dim);
+    border-bottom:1px dotted var(--ink-dim); padding:7px 2px; line-height:1.5;
+  }
+  .satellite-log-item.latest{ color:var(--orange); font-weight:700; }
+  .satellite-log-empty{ font-size:11px; color:var(--ink-dim); text-align:center; padding:14px 0; }
+
+  /* --- checkout: flat full-bleed, 2-color only --- */
+  .checkout-fab{
+    position:fixed; right:16px; bottom:16px; z-index:20;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--orange); color:var(--bg); border:none;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; line-height:1;
+  }
+  .checkout-fab svg{ width:24px; height:24px; }
+  .checkout-label{
+    position:fixed; right:14px; bottom:70px; z-index:20;
+    font-size:9px; letter-spacing:.06em; color:var(--orange); font-weight:600;
+    text-transform:uppercase; text-align:center; width:64px; line-height:1.5;
+  }
+
+  /* --- crew manifest (now a normal room panel, #panel-wc) --- */
+  #panel-wc{ text-align:center; }
+  .crew-count{
+    font-family:"Space Grotesk", sans-serif; font-size:36px; font-weight:700;
+    color:var(--orange); line-height:1; margin-bottom:18px;
+  }
+  .crew-count-of{ font-size:16px; color:var(--ink-dim); font-weight:500; }
+  .crew-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:10px;
+    margin-bottom:18px; padding:0 10px; width:100%; max-width:340px;
+  }
+  .crew-figure{ width:100%; }
+  .crew-figure svg{ width:100%; height:auto; }
+  .crew-day{
+    font-size:10px; color:var(--ink-dim); letter-spacing:.1em; font-weight:700;
+    text-transform:uppercase; margin-bottom:16px;
+  }
+  .crew-note{ font-size:10.5px; color:var(--ink-dim); line-height:1.7; padding:0 12px; }
+
+  .crew-reset-row{
+    margin-top:24px; padding-top:16px; border-top:1px dashed var(--ink-dim);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    width:100%; max-width:340px; padding-left:12px; padding-right:12px;
+  }
+  .crew-reset-text{ font-size:8px; color:var(--ink-dim); text-align:left; line-height:1.5; }
+  .crew-reset-yn{ display:flex; gap:4px; flex-shrink:0; }
+  .crew-yn-btn{
+    width:20px; height:20px; border:1px solid var(--ink-dim); background:transparent;
+    color:var(--ink-dim); font-family:inherit; font-size:9px; font-weight:700;
+    cursor:pointer; border-radius:2px; padding:0;
+  }
+  .checkout-screen{
+    position:fixed; inset:0; background:rgba(0,0,0,.28);
+    display:none; align-items:center; justify-content:center;
+    z-index:50; padding:24px;
+  }
+  .checkout-screen.show{ display:flex; }
+
+  /* --- confirm dialog --- */
+  .confirm-screen{
+    position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:60;
+    display:none; align-items:center; justify-content:center; padding:28px;
+  }
+  .confirm-screen.show{ display:flex; }
+  .confirm-card{
+    background:var(--orange); width:100%; max-width:320px; padding:28px 24px;
+    text-align:center;
+  }
+  .confirm-text{
+    font-size:13.5px; color:var(--bg); font-weight:600; line-height:1.6; margin-bottom:22px;
+  }
+  .confirm-buttons{ display:flex; gap:10px; }
+  .confirm-btn{
+    flex:1; padding:11px 0; font-family:inherit; font-size:11px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px;
+  }
+  .confirm-btn.cancel{ background:transparent; border:1.5px solid var(--bg); color:var(--bg); }
+  .confirm-btn.ok{ background:var(--bg); border:1.5px solid var(--bg); color:var(--orange); }
+  .checkout-card{
+    background:var(--orange); width:100%; max-width:380px; height:100%; max-height:640px;
+    padding:36px 24px 22px; display:flex; flex-direction:column; align-items:stretch;
+    position:relative;
+  }
+  .co-close{
+    position:absolute; top:16px; right:18px; font-size:20px; color:var(--bg);
+    cursor:pointer; font-weight:500;
+  }
+  .co-receipt-header{
+    text-align:center; margin-bottom:10px;
+  }
+  .co-receipt-header .biz{ font-size:15px; font-weight:700; color:var(--bg); letter-spacing:.08em; }
+  .co-receipt-header .biz-ja{ font-size:11px; color:var(--bg); opacity:.85; margin-top:2px; }
+  .co-receipt-header .stamp{
+    display:inline-block; margin-top:8px; padding:3px 10px; border:1.5px solid var(--bg);
+    font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--bg); text-transform:uppercase;
+  }
+  .co-label{ font-size:11.5px; color:var(--bg); font-weight:700; letter-spacing:.16em; margin-bottom:6px; text-align:center; }
+  .co-score{
+    font-family:"Space Grotesk", sans-serif; font-weight:700; font-size:52px;
+    color:var(--bg); line-height:1; letter-spacing:0; margin-bottom:4px;
+    font-variant-numeric: tabular-nums slashed-zero; text-align:center;
+  }
+  .co-score .unit{ font-size:18px; opacity:.85; margin-left:4px; }
+  .co-sub{ font-size:11px; color:var(--bg); font-weight:700; letter-spacing:.1em; margin-bottom:14px; text-align:center; }
+  .co-divider{ border-top:2px dashed var(--bg); opacity:.6; margin:6px 0; flex-shrink:0; }
+  .co-receipt{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    font-family:"Courier New", monospace; font-size:14.5px; color:var(--bg);
+    min-height:0; font-variant-numeric: slashed-zero;
+  }
+  .receipt-line{
+    display:flex; justify-content:space-between; gap:8px;
+    padding:7px 0; border-bottom:1px dotted rgba(226,226,224,.4);
+  }
+  .receipt-line .rl-name{ flex:1; line-height:1.4; font-weight:700; }
+  .receipt-line .rl-name .ja{ display:block; font-size:11.5px; opacity:.85; margin-top:2px; font-weight:400; }
+  .receipt-line .rl-qty{ opacity:.9; font-weight:700; white-space:nowrap; }
+  .receipt-line .rl-cost{ white-space:nowrap; font-weight:700; }
+  .receipt-line.bonus{
+    background:rgba(226,226,224,.18); margin:0 -8px; padding:8px; border-bottom-style:solid;
+  }
+  .receipt-line.bonus .rl-name{ letter-spacing:.02em; }
+  .receipt-line.bonus .rl-cost{ letter-spacing:.05em; }
+  .co-change{
+    display:flex; justify-content:space-between; padding-top:10px; margin-top:4px;
+    font-family:"Courier New", monospace; font-size:14.5px; color:var(--bg); font-weight:700;
+    flex-shrink:0; font-variant-numeric: slashed-zero;
+  }
+  .co-thanks{
+    text-align:center; font-size:11px; font-weight:700; color:var(--bg);
+    margin-top:14px; letter-spacing:.1em;
+  }
+  .co-thanks .ja{ display:block; font-size:10px; font-weight:400; opacity:.85; margin-top:3px; letter-spacing:.02em; }
+  .co-note{ font-size:8.5px; color:var(--bg); opacity:.85; font-weight:600; margin-top:12px; letter-spacing:.03em; text-align:center; flex-shrink:0; }
+
+  /* --- loading screen --- */
+  .loading-screen{
+    position:fixed; inset:0; background:var(--bg); z-index:200;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition: opacity .5s ease;
+  }
+  .loading-screen.hide{ opacity:0; pointer-events:none; }
+  .loading-screen.gone{ display:none !important; }
+  .planet-wrap{ width:150px; height:150px; margin-bottom:26px; }
+  .planet-svg{ width:100%; height:100%; animation: planetBreathe 3.2s ease-in-out infinite; }
+  @keyframes planetBreathe{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.035); }
+  }
+  .loading-logo{ display:flex; align-items:baseline; gap:6px; margin-bottom:14px; }
+  .loading-ext{ font-size:18px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:3px 10px; font-weight:700; }
+  .loading-tagline{
+    font-size:9.5px; color:var(--ink-dim); text-align:center; line-height:1.7;
+    margin-bottom:14px; letter-spacing:.02em; padding:0 30px;
+  }
+  .loading-story{
+    font-size:10px; color:var(--ink); text-align:center; line-height:1.6;
+    margin-bottom:22px; padding:0 26px; font-weight:600;
+  }
+  .loading-story .ja{ display:block; font-size:9px; color:var(--ink-dim); font-weight:400; margin-top:6px; }
+  .loading-status{ font-size:9.5px; letter-spacing:.18em; color:var(--ink-dim); text-transform:uppercase; }
+  .loading-status .dots{ display:inline-block; width:1.4em; text-align:left; animation: dotBlink 1.2s steps(4,end) infinite; }
+  @keyframes dotBlink{
+    0%{ clip-path: inset(0 100% 0 0); }
+    100%{ clip-path: inset(0 0 0 0); }
+  }
+  .loading-prompt{
+    font-size:10px; letter-spacing:.1em; color:var(--orange);
+    font-weight:700; margin-top:18px; opacity:0; transition:opacity .4s ease;
+    animation: promptPulse 1.4s ease-in-out infinite;
+    text-align:center; padding:0 24px; line-height:1.7;
+  }
+  .loading-screen.ready .loading-prompt{ opacity:1; }
+  .loading-screen.ready .loading-status{ display:none; }
+  @keyframes promptPulse{
+    0%,100%{ opacity:1; } 50%{ opacity:.35; }
+  }
+</style>
+</head>
+<body>
+<div class="loading-screen" id="loadingScreen">
+  <div class="planet-wrap">
+    <svg class="planet-svg" viewBox="0 0 200 200">
+      <ellipse cx="100" cy="100" rx="95" ry="22" fill="none" stroke="var(--orange)" stroke-width="7" transform="rotate(-18 100 100)"/>
+      <circle cx="100" cy="100" r="54" fill="var(--orange)"/>
+    </svg>
+  </div>
+  <div class="loading-logo">
+    <span class="loading-ext">.CO</span>
+  </div>
+  <div class="loading-tagline" id="loadingTagline" style="display:none;">Spend your Power. Live conveniently.<br>パワーを使って、便利な暮らしを。</div>
+  <div class="loading-story" id="loadingStory" style="display:none;">Alone in your colony, you found .co —<br>a shop that never closes.<br><span class="ja">コロニーでひとり、あなたは.coという<br>決して閉まらないネットショップにハマった。</span></div>
+  <div class="loading-status">CONNECTING TO .CO<span class="dots">...</span></div>
+  <div class="loading-prompt">Hold the button to access the shop<br>ボタンを長押しして、.coにアクセスしよう</div>
+</div>
+<div class="page-bg"></div>
+<div class="wrap">
+
+  <div class="hud">
+    <div class="brand-row">
+      <div class="brand-ext">.CO</div>
+    </div>
+    <div class="toprow">
+      <div class="stat-col">
+        <div class="label">POINTS</div>
+        <div class="idle" id="idleLabel">+0.0 / sec</div>
+      </div>
+      <div class="stat-col" style="text-align:right;">
+        <div class="label">BEST HOLD</div>
+        <div class="best" id="best">0.0s</div>
+      </div>
+    </div>
+    <div class="points-wrap">
+      <div class="points-block">
+        <div class="points-row" id="pointsTopRow"></div>
+        <div class="points-row" id="pointsBottomRow"></div>
+      </div>
+      <div class="ticker-wrap" id="tickerWrap">
+        <div class="ticker-text" id="tickerText"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="owned-row" id="ownedRow"></div>
+
+  <div class="minimap">
+    <svg viewBox="0 0 400 82" class="minimap-svg">
+      <!-- connecting corridors -->
+      <line class="room-connector" x1="37" y1="30" x2="37" y2="40"/>
+      <line class="room-connector" x1="151" y1="58" x2="161" y2="58"/>
+      <line class="room-connector" x1="245" y1="58" x2="255" y2="58"/>
+      <line class="room-connector" x1="339" y1="58" x2="345" y2="58"/>
+
+      <!-- WC: 押すと乗員数が確認できる。SHOPの左端と揃えて真上に配置 -->
+      <g class="room-group" data-room="wc">
+        <rect class="room-rect wc-rect" x="2" y="4" width="70" height="26"/>
+        <text class="room-label deco" x="37" y="21">WC</text>
+      </g>
+
+      <g class="room-group" data-room="shop">
+        <rect class="room-rect" x="2" y="40" width="149" height="40"/>
+        <text class="room-label" x="76" y="64">SHOP</text>
+      </g>
+      <g class="room-group" data-room="charge">
+        <rect class="room-rect" x="161" y="40" width="84" height="40"/>
+        <text class="room-label" x="203" y="64">MAIN</text>
+      </g>
+      <g class="room-group" data-room="log">
+        <rect class="room-rect" x="255" y="40" width="84" height="40"/>
+        <text class="room-label compact" x="297" y="64">STORAGE</text>
+      </g>
+      <g class="room-group" data-room="news">
+        <circle class="room-rect" cx="373" cy="60" r="20"/>
+        <text class="room-label compact" x="373" y="63">SATELLITE</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panels">
+    <div class="panel active" id="panel-charge">
+      <div class="stage">
+        <div class="mult-bubble" id="multBubble">×1.00</div>
+        <div id="gaugeDots"></div>
+        <div class="burst-ring ring1" id="burst1"></div>
+        <div class="burst-ring ring2" id="burst2"></div>
+        <div class="core" id="core">
+          <div class="verb" id="verb">HOLD</div>
+          <div class="hold-time" id="holdTime">0.0</div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="lonely-row">
+          <div class="lonely-label">LONELINESS</div>
+          <div class="lonely-bar"><div class="lonely-fill" id="lonelyFill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-shop">
+      <div class="shop-hint">Spend .CO on upgrades / .COでアップグレードを購入できます</div>
+      <div id="shopList"></div>
+    </div>
+
+    <div class="panel" id="panel-log">
+      <div class="shop-hint">Everything you've bought so far / これまでに購入した品物の一覧</div>
+      <div id="logList"></div>
+    </div>
+
+    <div class="panel" id="panel-news">
+      <div class="shop-hint">Listen in on signals from outside / 外から届く信号を受信できます</div>
+      <div class="satellite-dish">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="46" fill="none" stroke="var(--orange)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="4" fill="var(--orange)"/>
+          <line class="dish-needle" x1="60" y1="60" x2="95" y2="25" stroke="var(--orange)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="ticker-static" id="newsFeedText">Standing by for signal...</div>
+      <div class="satellite-log" id="satelliteLog"></div>
+    </div>
+
+    <div class="panel" id="panel-wc">
+      <div class="shop-hint">Crew Manifest / 乗員名簿</div>
+      <div class="crew-count">1<span class="crew-count-of">/12</span></div>
+      <div class="crew-grid" id="crewGrid"></div>
+      <div class="crew-day" id="crewDay">DAY 1</div>
+      <div class="crew-note">You are the only one left aboard.<br>この船には、あなたしか残っていません。</div>
+
+      <div class="crew-reset-row">
+        <span class="crew-reset-text">Start over completely? / 全て初めからやり直しますか？</span>
+        <span class="crew-reset-yn">
+          <button class="crew-yn-btn" id="crewResetYBtn">Y</button>
+          <button class="crew-yn-btn" id="crewResetNBtn">N</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <button class="checkout-fab" id="checkoutBtn" aria-label="Call staff to pay out"></button>
+  <div class="checkout-label">Call Staff<br>店員を呼ぶ</div>
+
+  <div class="confirm-screen" id="resetConfirmScreen">
+    <div class="confirm-card">
+      <div class="confirm-text">This will erase everything and start over from Day 1.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">全てのデータが消去され、最初からやり直しになります。よろしいですか？</span></div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" id="resetCancelBtn">Cancel</button>
+        <button class="confirm-btn ok" id="resetOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lonely-ad" id="lonelyAd">
+    <div class="lonely-ad-cards" id="lonelyAdCards"></div>
+  </div>
+
+  <div class="confirm-screen" id="confirmScreen">
+    <div class="confirm-card">
+      <div class="confirm-text">This will spend all of your current .CO to call the staff.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">現在のポイントを全て消費して店員を呼びますが、よろしいでしょうか？</span></div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" id="confirmCancelBtn">Cancel</button>
+        <button class="confirm-btn ok" id="confirmOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-screen" id="checkoutModal">
+    <div class="checkout-card">
+      <div class="co-close" id="modalCloseBtn">✕</div>
+      <div class="co-receipt-header">
+        <div class="biz">.CO TRADE POST</div>
+        <div class="biz-ja">銀河通商会社 .co 交易所</div>
+        <div class="stamp">RECEIPT</div>
+      </div>
+      <div class="co-label">Total Spent / 消費した.CO</div>
+      <div class="co-score"><span id="modalScore">0</span><span class="unit">.CO</span></div>
+      <div class="co-sub">— ITEMIZED RECEIPT / 領収明細 —</div>
+      <div class="co-divider"></div>
+      <div class="co-receipt" id="receiptList"></div>
+      <div class="co-divider"></div>
+      <div class="co-change"><span>CHANGE DUE / お釣り</span><span id="modalChange">0 .CO</span></div>
+      <div class="co-thanks">THANK YOU FOR SHOPPING AT .CO<span class="ja">またのご利用をお待ちしております</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const loadingScreen = document.getElementById('loadingScreen');
+  let loadingReady = false;
+  let loadingDismissed = false;
+
+  // 初回（セーブデータなし）はストーリーだけ、2回目以降はキャッチコピーだけを表示
+  (function(){
+    let hasSave = false;
+    try{ hasSave = !!localStorage.getItem('cococo_c0c0c0_save_v1'); }catch(e){}
+    const el = document.getElementById(hasSave ? 'loadingTagline' : 'loadingStory');
+    if(el) el.style.display = 'block';
+  })();
+
+  function hideLoading(){
+    if(!loadingReady || loadingDismissed) return;
+    loadingDismissed = true;
+    loadingScreen.classList.add('hide');
+    setTimeout(()=>{ loadingScreen.classList.add('gone'); }, 600);
+  }
+  setTimeout(()=>{
+    loadingReady = true;
+    loadingScreen.classList.add('ready');
+  }, 3000);
+  loadingScreen.addEventListener('click', hideLoading);
+  loadingScreen.addEventListener('pointerdown', hideLoading);
+  loadingScreen.addEventListener('touchstart', hideLoading, {passive:true});
+
+  // --- icon library (single-color silhouettes, drawn as SVG) ---
+  const ICONS = {
+    bolt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>',
+    diamond: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 9l-10 13L2 9Z"/></svg>',
+    battery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="17" height="10" rx="1.5"/><rect x="20" y="10" width="2" height="4" fill="currentColor" stroke="none"/><rect x="5" y="9.5" width="8" height="5" fill="currentColor" stroke="none"/></svg>',
+    spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8Z"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a2 2 0 0 0-2 2v1.1A7 7 0 0 0 5 12v4l-2 2v1h18v-1l-2-2v-4a7 7 0 0 0-5-6.9V4a2 2 0 0 0-2-2Zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"/></svg>',
+    mountain: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 19 8 7l4 6 2.5-3.5L22 19Z"/></svg>',
+    tower: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 2h2v3h3l-1 3h-2v2h3l-1 3h-2v8h-2v-8H9l-1-3h3v-2H9L8 5h3Z"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
+    person: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8Z"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="12" x2="12" y2="6"/><line x1="12" y1="12" x2="16" y2="14"/></svg>',
+    coin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>',
+    dice: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="1.4"/><circle cx="16" cy="8" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="8" cy="16" r="1.4"/><circle cx="16" cy="16" r="1.4"/></svg>',
+    ball: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 6.5 15 9l-1.2 4H10.2L9 9Z"/></svg>',
+    building: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="14" height="18" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="7.3" y="6" width="1.6" height="1.6"/><rect x="11.2" y="6" width="1.6" height="1.6"/><rect x="15.1" y="6" width="1.6" height="1.6"/><rect x="7.3" y="10" width="1.6" height="1.6"/><rect x="11.2" y="10" width="1.6" height="1.6"/><rect x="15.1" y="10" width="1.6" height="1.6"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6L22 9.3l-5 4.9L18.2 22 12 18.3 5.8 22 7 14.2l-5-4.9 7.1-.7Z"/></svg>',
+    ruler: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="9" width="20" height="6"/><line x1="6" y1="9" x2="6" y2="12"/><line x1="10" y1="9" x2="10" y2="12"/><line x1="14" y1="9" x2="14" y2="12"/><line x1="18" y1="9" x2="18" y2="12"/></svg>'
+  };
+  function iconHtml(key){ return ICONS[key] || ICONS.star; }
+
+  document.getElementById('checkoutBtn').innerHTML = iconHtml('bell');
+
+  const core = document.getElementById('core');
+  const holdTimeEl = document.getElementById('holdTime');
+  const multBubbleEl = document.getElementById('multBubble');
+  const verbEl = document.getElementById('verb');
+  const pointsTopRowEl = document.getElementById('pointsTopRow');
+  const pointsBottomRowEl = document.getElementById('pointsBottomRow');
+  const hudEl = document.querySelector('.hud');
+  const idleLabelEl = document.getElementById('idleLabel');
+  const bestEl = document.getElementById('best');
+  const stage = document.querySelector('.stage');
+  const burst1 = document.getElementById('burst1');
+  const burst2 = document.getElementById('burst2');
+  const shopListEl = document.getElementById('shopList');
+  const logListEl = document.getElementById('logList');
+  const panels = document.querySelectorAll('.panel');
+  const gaugeDotsEl = document.getElementById('gaugeDots');
+  const ownedRowEl = document.getElementById('ownedRow');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const checkoutLabelEl = document.querySelector('.checkout-label');
+  const checkoutModal = document.getElementById('checkoutModal');
+  const modalScoreEl = document.getElementById('modalScore');
+  const receiptListEl = document.getElementById('receiptList');
+  const modalChangeEl = document.getElementById('modalChange');
+  const changeRowEl = document.querySelector('.co-change');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const lonelyFillEl = document.getElementById('lonelyFill');
+  const crewDayEl = document.getElementById('crewDay');
+  const crewGridEl = document.getElementById('crewGrid');
+  const crewResetYBtnEl = document.getElementById('crewResetYBtn');
+  const crewResetNBtnEl = document.getElementById('crewResetNBtn');
+  const resetConfirmScreenEl = document.getElementById('resetConfirmScreen');
+  const resetCancelBtnEl = document.getElementById('resetCancelBtn');
+  const resetOkBtnEl = document.getElementById('resetOkBtn');
+  const lonelyAdEl = document.getElementById('lonelyAd');
+  const lonelyAdCardsEl = document.getElementById('lonelyAdCards');
+  const newsFeedTextEl = document.getElementById('newsFeedText');
+  const tickerWrapEl = document.getElementById('tickerWrap');
+  const tickerTextEl = document.getElementById('tickerText');
+  const satelliteLogEl = document.getElementById('satelliteLog');
+  const roomGroups = document.querySelectorAll('.room-group');
+
+  const BASE_RATE_START = 12;
+  const MULT_PER_SEC_START = 0.15;
+  const IDLE_RATE_START = 0;
+
+  let points = 0;
+  let bestHold = 0;
+  let totalSpentEver = 0;
+  let lonely = 100;
+  let latestSignal = null;
+  let colonyDay = 1;
+  let tickerTimer = null;
+  let holding = false;
+  let startTime = 0;
+  let rafId = null;
+  let activePointerId = null;
+  let lastTickTime = 0;
+  let lastTierPlayed = 1;
+
+  let ignoredAdCount = 0;
+  let checkoutFromLonelyAd = false;
+
+  function updateLonelyBar(){ lonelyFillEl.style.width = Math.max(lonely, 0) + '%'; }
+  function decreaseLonely(amount){
+    lonely = Math.max(lonely - amount, 0);
+    updateLonelyBar();
+    if(lonely <= 0){
+      showLonelyAdStack();
+    }
+  }
+  function showLonelyAdStack(){
+    const count = Math.max(ignoredAdCount + 1, 1);
+    lonelyAdCardsEl.innerHTML = '';
+    const cardW = 320, cardH = 230;
+    for(let i = 0; i < count; i++){
+      const maxX = Math.max(window.innerWidth - cardW - 24, 24);
+      const maxY = Math.max(window.innerHeight - cardH - 24, 24);
+      const x = 12 + Math.random() * (maxX - 12);
+      const y = 12 + Math.random() * (maxY - 12);
+
+      const card = document.createElement('div');
+      card.className = 'lonely-ad-card';
+      card.style.left = x + 'px';
+      card.style.top = y + 'px';
+      card.style.zIndex = String(10 + i);
+      card.innerHTML =
+        '<div class="lonely-ad-close">✕</div>' +
+        '<div class="lonely-ad-title">Feeling alone tonight?<br>今夜も、ひとりですか？</div>' +
+        '<div class="lonely-ad-sub">Someone is always ready to talk at .co.<br>.coなら、いつでも誰かが話を聞いてくれます。</div>' +
+        '<button class="lonely-ad-btn">Call Staff</button>';
+
+      card.querySelector('.lonely-ad-close').addEventListener('click', ()=> dismissOneLonelyAd(card));
+      card.querySelector('.lonely-ad-btn').addEventListener('click', ()=> callStaffFromLonelyAd(card));
+
+      lonelyAdCardsEl.appendChild(card);
+    }
+    lonelyAdEl.classList.add('show');
+  }
+  // カードを1枚だけ無視して閉じる。ロンリネスは半分だけ回復。全部閉じ終えたら次回はさらに1枚増える
+  function dismissOneLonelyAd(card){
+    card.remove();
+    ignoredAdCount += 1;
+    lonely = Math.min(lonely + 50, 100);
+    updateLonelyBar();
+    saveState();
+    if(lonelyAdCardsEl.children.length === 0){
+      lonelyAdEl.classList.remove('show');
+    }
+  }
+  // カードから直接「Call Staff」。会計が成立すれば残りのカードもまとめて片付く
+  function callStaffFromLonelyAd(card){
+    checkoutFromLonelyAd = true;
+    lonelyAdEl.classList.remove('show');
+    confirmScreen.classList.add('show');
+  }
+  // 会計が実際に成立した場合のみ: ロンリネスは満タン回復し、無視カウント・残っていたカードも全てリセット
+  function resolveLonelyAdSuccess(){
+    ignoredAdCount = 0;
+    lonelyAdCardsEl.innerHTML = '';
+    lonelyAdEl.classList.remove('show');
+    lonely = 100;
+    updateLonelyBar();
+    saveState();
+  }
+  // --- haptic feedback only (audio removed) ---
+  function vibrate(pattern){
+    if(navigator.vibrate){
+      try{ navigator.vibrate(pattern); }catch(e){}
+    }
+  }
+
+  const upgrades = [
+    { id:'generator', name:'Generator', nameJa:'発電機', icon:'bolt', desc:'Passive income while idle — scales up with each level', level:0, maxLevel:15, baseCost:40, costMult:1.16 },
+    { id:'amp', name:'Amplifier', nameJa:'増幅コイル', icon:'diamond', desc:'Multiplier grows faster while holding (+0.03/sec per Lv)', level:0, maxLevel:15, baseCost:70, costMult:1.2 },
+    { id:'boost', name:'Booster', nameJa:'蓄圧ブースター', icon:'battery', desc:'Higher base rate on release (+2pt per Lv)', level:0, maxLevel:15, baseCost:100, costMult:1.22 },
+    { id:'startmult', name:'Igniter', nameJa:'初期倍率装置', icon:'spark', desc:'Higher starting multiplier — scales up with each level', level:0, maxLevel:15, baseCost:160, costMult:1.28 }
+  ];
+
+  function getUpgrade(id){ return upgrades.find(u => u.id === id); }
+  function costFor(u){ return Math.ceil(u.baseCost * Math.pow(u.costMult, u.level)); }
+
+  // レベルが上がるほど、1レベルあたりの伸び幅自体も大きくなる(相対的に弱く感じないように)
+  function currentIdleRate(){
+    const lv = getUpgrade('generator').level;
+    return IDLE_RATE_START + 0.4 * lv + 0.06 * lv * lv;
+  }
+  function currentBaseRate(){ return BASE_RATE_START + getUpgrade('boost').level * 2; }
+  function currentMultPerSec(){ return MULT_PER_SEC_START + getUpgrade('amp').level * 0.03; }
+  function currentStartMultBonus(){
+    const lv = getUpgrade('startmult').level;
+    return 0.1 * lv + 0.025 * lv * lv;
+  }
+  function currentMultiplier(sec){ return 1 + currentStartMultBonus() + sec * currentMultPerSec(); }
+
+  const POINTS_DIGITS = 15;
+  function formatNum(n){ return Math.floor(n).toLocaleString('en-US'); }
+  function formatPoints(n){ return Math.floor(Math.max(0,n)).toString().padStart(POINTS_DIGITS, '0'); }
+  function formatDec(n, d){ return n.toFixed(d); }
+
+  // --- digit cap system: starts at 5 digits (99999), unlocked further via cumulative spending ---
+  const DIGIT_THRESHOLDS = (function(){
+    const list = [];
+    let ratio = 0.6;
+    for(let d = 6; d <= POINTS_DIGITS; d++){
+      const prevCap = Math.pow(10, d - 1) - 1;
+      list.push({ digits: d, threshold: Math.round(prevCap * ratio) });
+      ratio = Math.max(ratio - 0.05, 0.1);
+    }
+    return list;
+  })();
+  function currentUnlockedDigits(){
+    let unlocked = 5;
+    for(const t of DIGIT_THRESHOLDS){
+      if(totalSpentEver >= t.threshold) unlocked = t.digits;
+      else break;
+    }
+    return unlocked;
+  }
+  function currentCap(){ return Math.pow(10, currentUnlockedDigits()) - 1; }
+  function nextDigitThreshold(){
+    const unlocked = currentUnlockedDigits();
+    return DIGIT_THRESHOLDS.find(t => t.digits > unlocked) || null;
+  }
+
+  function tierFor(sec){
+    if(sec >= 7) return 3;
+    if(sec >= 3) return 2;
+    return 1;
+  }
+  function setTierClass(sec){
+    const t = tierFor(sec);
+    core.classList.remove('tier1','tier2','tier3');
+    core.classList.add('tier' + t);
+    return t;
+  }
+
+  const DOT_COUNT = 28;
+  const dots = [];
+  function buildGaugeDots(){
+    const size = stage.clientWidth || 184;
+    const cx = size / 2, cy = size / 2;
+    const r = size / 2 - 4;
+    for(let i = 0; i < DOT_COUNT; i++){
+      const angle = (i / DOT_COUNT) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      const dot = document.createElement('div');
+      dot.className = 'gdot';
+      dot.style.left = x + 'px';
+      dot.style.top = y + 'px';
+      gaugeDotsEl.appendChild(dot);
+      dots.push(dot);
+    }
+  }
+  function setGaugeRatio(ratio){
+    const lit = Math.floor(ratio * DOT_COUNT);
+    for(let i = 0; i < DOT_COUNT; i++){
+      dots[i].classList.toggle('lit', i < lit);
+    }
+  }
+  function clearGauge(){ setGaugeRatio(0); }
+
+  function rewindGauge(totalGrowth){
+    if(totalGrowth <= 0){ setGaugeRatio(0); return; }
+    const extraLaps = Math.max(totalGrowth - 1, 0);
+    const perLapSlowMs = 550;   // 2周目以降(余分な周回)にかける時間
+    const fastDuration = 280;   // 最後の1周を戻す速さ
+    const slowDuration = extraLaps * perLapSlowMs;
+    const totalDuration = slowDuration + fastDuration;
+    const start = performance.now();
+    function frame(now){
+      const elapsed = now - start;
+      let remaining;
+      if(elapsed < slowDuration){
+        const t1 = slowDuration > 0 ? elapsed / slowDuration : 1;
+        remaining = totalGrowth - (totalGrowth - 1) * t1;
+      } else {
+        const t2 = Math.min((elapsed - slowDuration) / fastDuration, 1);
+        const phase2Start = Math.min(totalGrowth, 1);
+        remaining = phase2Start * (1 - t2);
+      }
+      let ratio = remaining % 1;
+      if(ratio === 0 && remaining > 0.0001) ratio = 1;
+      setGaugeRatio(ratio);
+      if(elapsed < totalDuration){
+        requestAnimationFrame(frame);
+      } else {
+        setGaugeRatio(0);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function buildDigitRow(container, count){
+    container.innerHTML = '';
+    const spans = [];
+    for(let i = 0; i < count; i++){
+      const span = document.createElement('span');
+      span.className = 'digit';
+      span.textContent = '0';
+      container.appendChild(span);
+      spans.push(span);
+    }
+    return spans;
+  }
+  const topDigits = buildDigitRow(pointsTopRowEl, 8);
+  const bottomDigits = buildDigitRow(pointsBottomRowEl, 8);
+  bottomDigits[7].textContent = '.CO';
+  bottomDigits[7].classList.add('brand-digit');
+
+  function computeDigitFontSize(){
+    const probe = document.createElement('span');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.left = '-9999px';
+    probe.style.fontFamily = "'Space Grotesk', sans-serif";
+    probe.style.fontWeight = '600';
+    probe.style.fontSize = '100px';
+    probe.textContent = '0';
+    document.body.appendChild(probe);
+    const digitWidthAt100 = probe.offsetWidth || 55;
+    document.body.removeChild(probe);
+
+    const containerWidth = hudEl.clientWidth;
+    const gapTotal = 4 * 7; // grid gap between 8 columns
+    const borderPadTotal = 8; // border+padding allowance per digit
+    const colWidth = (containerWidth - gapTotal) / 8 - borderPadTotal;
+    const targetWidth = colWidth * 0.82;
+    let size = 100 * (targetWidth / digitWidthAt100);
+    if(!isFinite(size) || size <= 0) size = 60;
+    return size;
+  }
+  function applyDigitFontSize(){
+    const size = computeDigitFontSize();
+    pointsTopRowEl.style.fontSize = size + 'px';
+    pointsBottomRowEl.style.fontSize = size + 'px';
+    bottomDigits[7].style.fontSize = (size * 0.7) + 'px';
+    // 上下の行でセル1つあたりの幅・高さが1pxでもズレないよう、実測してグリッド自体に固定値を適用
+    pointsTopRowEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    pointsBottomRowEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    topDigits.forEach(d => { d.style.height = 'auto'; });
+    bottomDigits.forEach(d => { d.style.height = 'auto'; });
+    const topH = topDigits[0].getBoundingClientRect().height;
+    const bottomHCandidates = bottomDigits.slice(0, 7).map(d => d.getBoundingClientRect().height);
+    const finalH = Math.max(topH, ...bottomHCandidates);
+    topDigits.forEach(d => { d.style.height = finalH + 'px'; });
+    bottomDigits.forEach(d => { d.style.height = finalH + 'px'; });
+
+    // 列幅を実測し、上下で同じpx値のグリッドに固定する(理論上ズレる余地を無くす)
+    const colWidthPx = topDigits[0].getBoundingClientRect().width;
+    const fixedCols = 'repeat(8, ' + colWidthPx + 'px)';
+    pointsTopRowEl.style.gridTemplateColumns = fixedCols;
+    pointsBottomRowEl.style.gridTemplateColumns = fixedCols;
+  }
+  window.addEventListener('resize', applyDigitFontSize);
+
+  let displayedPoints = 0;
+  let unlockedDigitsCache = 5;
+  function refreshDigitLocks(){
+    unlockedDigitsCache = currentUnlockedDigits();
+    const lockedCount = POINTS_DIGITS - unlockedDigitsCache;
+    for(let i = 0; i < 8; i++){
+      const isLocked = i < lockedCount;
+      topDigits[i].classList.toggle('locked', isLocked);
+      if(isLocked) topDigits[i].textContent = '';
+    }
+    for(let i = 0; i < 7; i++){
+      const gi = i + 8;
+      const isLocked = gi < lockedCount;
+      bottomDigits[i].classList.toggle('locked', isLocked);
+      if(isLocked) bottomDigits[i].textContent = '';
+    }
+  }
+  function renderDigits(value){
+    const full = formatPoints(value);
+    const lockedCount = POINTS_DIGITS - unlockedDigitsCache;
+    for(let i = 0; i < 8; i++){
+      if(i >= lockedCount) topDigits[i].textContent = full[i];
+    }
+    for(let i = 0; i < 7; i++){
+      const gi = i + 8;
+      if(gi >= lockedCount) bottomDigits[i].textContent = full[gi];
+    }
+  }
+  function countLoop(){
+    const diff = points - displayedPoints;
+    const absDiff = Math.abs(diff);
+    if(absDiff < 0.6){
+      displayedPoints = points;
+    } else {
+      let step;
+      if(absDiff <= 100){
+        step = 2;
+      } else if(absDiff <= 999){
+        step = Math.max(absDiff / 40, 3);
+      } else {
+        step = Math.max(absDiff / 24, 10);
+      }
+      displayedPoints += Math.sign(diff) * Math.min(step, absDiff);
+    }
+    renderDigits(Math.floor(displayedPoints));
+    requestAnimationFrame(countLoop);
+  }
+  requestAnimationFrame(countLoop);
+
+  function updateHud(){
+    idleLabelEl.textContent = '+' + formatDec(currentIdleRate(), 1) + ' / sec';
+  }
+
+  function loop(){
+    if(!holding) return;
+    const sec = (performance.now() - startTime) / 1000;
+    const mult = currentMultiplier(sec);
+    holdTimeEl.textContent = sec.toFixed(1);
+    multBubbleEl.textContent = '×' + mult.toFixed(2);
+
+    const growth = sec * currentMultPerSec();
+    setGaugeRatio(growth % 1);
+
+    const t = setTierClass(sec);
+    if(t !== lastTierPlayed){
+      lastTierPlayed = t;
+      vibrate(15);
+    }
+    const now = performance.now();
+    const tickInterval = t === 3 ? 70 : (t === 2 ? 130 : 200);
+    if(now - lastTickTime >= tickInterval){
+      lastTickTime = now;
+      vibrate(6);
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function startHold(){
+    if(holding) return;
+    holding = true;
+    startTime = performance.now();
+    lastTickTime = performance.now();
+    lastTierPlayed = 1;
+    vibrate(10);
+    core.classList.add('charging');
+    verbEl.textContent = 'CHARGING';
+    multBubbleEl.classList.add('show');
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function spawnPopup(text){
+    const rect = stage.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'popup';
+    el.textContent = text;
+    el.style.left = (rect.left + rect.width/2 - 20) + 'px';
+    el.style.top = (rect.top + rect.height/2 - 10) + 'px';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 900);
+  }
+
+  function endHold(){
+    if(!holding) return;
+    holding = false;
+    cancelAnimationFrame(rafId);
+
+    const sec = (performance.now() - startTime) / 1000;
+    const mult = currentMultiplier(sec);
+    const gained = sec * currentBaseRate() * mult;
+
+    points += gained;
+    points = Math.min(points, currentCap());
+    if(sec > bestHold){
+      bestHold = sec;
+      bestEl.textContent = bestHold.toFixed(1) + 's';
+    }
+
+    updateHud();
+    spawnPopup('+' + formatNum(gained));
+    renderShop();
+    decreaseLonely(7);
+
+    const strength = Math.min(sec / 8, 1);
+    vibrate(sec >= 7 ? [25,30,45] : (sec >= 3 ? [20,20,30] : 35));
+
+    const burstDur = Math.min(0.4 + sec * 0.1, 1.8);
+    stage.style.setProperty('--burst-dur', burstDur + 's');
+    [burst1, burst2].forEach(r => {
+      r.classList.remove('play');
+      void r.offsetWidth;
+      r.classList.add('play');
+    });
+    core.classList.remove('release');
+    void core.offsetWidth;
+    core.classList.add('release');
+
+    core.classList.remove('charging','tier1','tier2','tier3');
+    verbEl.textContent = 'HOLD';
+    holdTimeEl.textContent = '0.0';
+    multBubbleEl.classList.remove('show');
+    let totalGrowth = sec * currentMultPerSec();
+    const MIN_RATIO = 6 / DOT_COUNT;
+    if(totalGrowth > 0 && totalGrowth < MIN_RATIO){
+      totalGrowth = MIN_RATIO;
+    }
+    rewindGauge(totalGrowth);
+    saveState();
+  }
+
+  core.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    activePointerId = e.pointerId;
+    try{ core.setPointerCapture(e.pointerId); }catch(err){}
+    startHold();
+  });
+  core.addEventListener('pointerup', (e)=>{
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
+    activePointerId = null;
+    endHold();
+  });
+  core.addEventListener('pointercancel', ()=>{ activePointerId = null; endHold(); });
+  window.addEventListener('blur', endHold);
+
+  core.addEventListener('contextmenu', (e)=> e.preventDefault());
+  core.addEventListener('selectstart', (e)=> e.preventDefault());
+  document.addEventListener('dragstart', (e)=> e.preventDefault());
+
+  setInterval(()=>{
+    const rate = currentIdleRate();
+    if(rate > 0){
+      points += rate * 0.2;
+      points = Math.min(points, currentCap());
+      updateHud();
+    }
+  }, 200);
+
+  function renderOwnedRow(){
+    ownedRowEl.innerHTML = '';
+    upgrades.forEach(u => {
+      if(u.level <= 0) return;
+      const badge = document.createElement('div');
+      badge.className = 'owned-badge';
+      badge.innerHTML = iconHtml(u.icon) + '<span>×' + u.level + '</span>';
+      ownedRowEl.appendChild(badge);
+    });
+  }
+
+  function renderShop(){
+    shopListEl.innerHTML = '';
+    upgrades.forEach(u => {
+      const atMax = u.level >= u.maxLevel;
+      const cost = costFor(u);
+      const afford = !atMax && points >= cost;
+
+      const item = document.createElement('div');
+      item.className = 'shop-item' + (afford ? ' afford' : '');
+
+      const icon = document.createElement('div');
+      icon.className = 'shop-icon';
+      icon.innerHTML = iconHtml(u.icon);
+
+      const info = document.createElement('div');
+      info.className = 'shop-info';
+      info.innerHTML =
+        '<div class="shop-name">' + u.name + ' <span class="ja">/ ' + u.nameJa + '</span></div>' +
+        '<div class="shop-desc">' + u.desc + '</div>' +
+        '<div class="shop-level">LV. ' + u.level + ' / ' + u.maxLevel + '</div>';
+
+      const btn = document.createElement('button');
+      btn.className = 'buy-btn';
+      btn.disabled = !afford;
+      btn.innerHTML = atMax
+        ? 'MAX'
+        : 'Buy<span class="cost">' + formatNum(cost) + '</span>';
+      btn.addEventListener('click', ()=>{
+        if(!atMax && points >= cost){
+          points -= cost;
+          u.level += 1;
+          updateHud();
+          renderShop();
+          renderOwnedRow();
+          spawnPopup('LV.' + u.level);
+          saveState();
+        }
+      });
+
+      item.appendChild(icon);
+      item.appendChild(info);
+      item.appendChild(btn);
+      shopListEl.appendChild(item);
+    });
+  }
+
+  function goToRoom(roomId){
+    panels.forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('panel-' + roomId);
+    if(panel) panel.classList.add('active');
+    roomGroups.forEach(g => {
+      if(!g.dataset.room) return;
+      const isCurrent = g.dataset.room === roomId;
+      g.querySelector('.room-rect').classList.toggle('current', isCurrent);
+      g.querySelector('.room-label').classList.toggle('current', isCurrent);
+    });
+    const inMainRoom = roomId === 'charge';
+    checkoutBtn.style.display = inMainRoom ? 'flex' : 'none';
+    checkoutLabelEl.style.display = inMainRoom ? 'block' : 'none';
+    if(roomId === 'shop') renderShop();
+    if(roomId === 'log') renderLog();
+    if(roomId === 'news') refreshNewsFeed();
+    if(roomId === 'wc') buildCrewGrid();
+    rescheduleTickerForRoom();
+  }
+
+  roomGroups.forEach(group => {
+    if(!group.dataset.room) return;
+    group.addEventListener('click', ()=> goToRoom(group.dataset.room));
+  });
+  goToRoom('charge');
+
+  // --- Galactic Trade Co. catalog & receipt engine ---
+  const catalog = [
+    { name: 'Loose Bolt', nameJa: '緩んだボルト', cost: 1 },
+    { name: 'Tin of Recycled Air', nameJa: '再生空気の缶', cost: 3 },
+    { name: 'Ration Bar (non-perishable)', nameJa: '携行食料(非常食)', cost: 5 },
+    { name: 'Spare Flashlight Battery', nameJa: '懐中電灯の予備電池', cost: 12 },
+    { name: 'Encrypted Data Chip', nameJa: '暗号化データチップ', cost: 30 },
+    { name: 'Zero-G Magnetic Boots', nameJa: '無重力用マグネットブーツ', cost: 80 },
+    { name: 'Personal Shield Generator', nameJa: '携帯用シールド発生装置', cost: 150 },
+    { name: 'Cybernetic Index Finger', nameJa: 'サイバネティック人差し指', cost: 300 },
+    { name: 'AI Companion Chip (basic)', nameJa: 'AIコンパニオンチップ(基本)', cost: 600 },
+    { name: 'Cloaking Device (civilian grade)', nameJa: '民間用ステルス装置', cost: 1200 },
+    { name: 'Warp Core Fragment', nameJa: 'ワープコアの破片', cost: 2500 },
+    { name: 'Terraforming Seed Pod', nameJa: 'テラフォーミング用種子ポッド', cost: 5000 },
+    { name: 'Android Body (refurbished)', nameJa: 'アンドロイドボディ(再生品)', cost: 10000 },
+    { name: 'Wormhole Coordinates (unverified)', nameJa: 'ワームホール座標(未検証)', cost: 25000 },
+    { name: 'Time Dilation Watch', nameJa: '時間遅延腕時計', cost: 50000 },
+    { name: 'Deed: Abandoned Moon Colony', nameJa: '権利書:放棄された月面コロニー', cost: 120000 },
+    { name: 'Access Codes: Derelict Dreadnought', nameJa: 'アクセスコード:放棄されたド級戦艦', cost: 300000 },
+    { name: 'Fully Operational Teleporter', nameJa: '完全稼働テレポーター', cost: 750000 },
+    { name: 'Blueprint: Dyson Sphere', nameJa: '設計図:ダイソン球', cost: 2000000 },
+    { name: 'Title: Governor of a Star System', nameJa: '称号:星系総督', cost: 10000000 },
+    { name: 'Deed: One Habitable Planet', nameJa: '権利書:居住可能惑星1つ', cost: 100000000 },
+    { name: 'Full Body Conversion Kit', nameJa: '全身機械化キット', cost: 500000000 },
+    { name: 'Consciousness Backup Slot', nameJa: '意識バックアップ領域', cost: 2000000000 },
+    { name: 'Deed: Small Star System', nameJa: '権利書:小規模な星系', cost: 10000000000 },
+    { name: 'Blueprint: Dyson Swarm', nameJa: '設計図:ダイソン群', cost: 50000000000 },
+    { name: 'Shares in .co Itself', nameJa: '.co社そのものの株式', cost: 200000000000 },
+    { name: 'Deed: Former Earth (as-is)', nameJa: '権利書:かつての地球(現状渡し)', cost: 900000000000 },
+    { name: 'Title: Last Human Alive', nameJa: '称号:最後の生存人類', cost: 999999999999999 }
+  ];
+  const sortedCatalog = [...catalog].sort((a,b) => b.cost - a.cost);
+
+  function buildReceipt(totalCR){
+    let remaining = Math.floor(Math.max(totalCR, 0));
+    const lines = [];
+    sortedCatalog.forEach(entry => {
+      const qty = Math.floor(remaining / entry.cost);
+      if(qty > 0){
+        lines.push({ name: entry.name, nameJa: entry.nameJa, cost: entry.cost, qty, subtotal: qty * entry.cost });
+        remaining -= qty * entry.cost;
+      }
+    });
+    return { lines, change: remaining };
+  }
+
+  let printTimer = null;
+  function printReceipt(receipt, bonusLines){
+    receiptListEl.innerHTML = '';
+    modalChangeEl.textContent = '0 .CO';
+    changeRowEl.style.display = 'none';
+    const allLines = receipt.lines.concat(bonusLines || []);
+    if(allLines.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'receipt-line';
+      empty.innerHTML = '<span class="rl-name">Insufficient credits — welcome sample only</span>';
+      receiptListEl.appendChild(empty);
+      if(receipt.change > 0){
+        modalChangeEl.textContent = formatNum(receipt.change) + ' .CO';
+        changeRowEl.style.display = 'flex';
+      }
+      return;
+    }
+    let i = 0;
+    function step(){
+      if(i >= allLines.length){
+        if(receipt.change > 0){
+          modalChangeEl.textContent = formatNum(receipt.change) + ' .CO';
+          changeRowEl.style.display = 'flex';
+        }
+        return;
+      }
+      const l = allLines[i];
+      const row = document.createElement('div');
+      row.className = 'receipt-line' + (l.bonus ? ' bonus' : '');
+      row.innerHTML = l.bonus
+        ? '<span class="rl-name">★ ' + l.name + '<span class="ja">' + l.nameJa + '</span></span>' +
+          '<span class="rl-cost">FREE</span>'
+        : '<span class="rl-name">' + l.name + '<span class="ja">' + l.nameJa + '</span></span>' +
+          '<span class="rl-qty">×' + formatNum(l.qty) + '</span>' +
+          '<span class="rl-cost">' + formatNum(l.subtotal) + '</span>';
+      receiptListEl.appendChild(row);
+      receiptListEl.scrollTop = receiptListEl.scrollHeight;
+      i++;
+      printTimer = setTimeout(step, 55);
+    }
+    step();
+  }
+
+  const confirmScreen = document.getElementById('confirmScreen');
+  const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+  const confirmOkBtn = document.getElementById('confirmOkBtn');
+
+  // --- purchase log: accumulates every item ever redeemed ---
+  const purchaseLog = {}; // name -> { name, nameJa, cost, icon, qty, spent }
+  // stage color: main accent color shifts as the story progresses
+  const STAGE_COLORS = [
+    { base: '#ff3d00', dim: 'rgba(255,61,0,.58)',   faint: 'rgba(255,61,0,.22)' },   // 0: orange
+    { base: '#ff2d87', dim: 'rgba(255,45,135,.58)', faint: 'rgba(255,45,135,.22)' }, // 1: pink
+    { base: '#29c5e6', dim: 'rgba(41,197,230,.58)', faint: 'rgba(41,197,230,.22)' }, // 2: light blue
+    { base: '#9b5de5', dim: 'rgba(155,93,229,.58)', faint: 'rgba(155,93,229,.22)' }, // 3: purple
+    { base: '#4a4a47', dim: 'rgba(74,74,71,.6)',    faint: 'rgba(74,74,71,.22)' }    // 4: dark gray
+  ];
+  const MAX_LEVEL_CAP = 60;
+  const UNLOCK_CHANCE = 0.15; // アイテム1個ごとの上限解放確率(枠の開放よりずっと簡単)
+  function rollLevelCapUnlocks(itemCount){
+    const unlocked = [];
+    for(let i = 0; i < itemCount; i++){
+      if(Math.random() < UNLOCK_CHANCE){
+        const candidates = upgrades.filter(u => u.maxLevel < MAX_LEVEL_CAP);
+        if(candidates.length === 0) break;
+        const target = candidates[Math.floor(Math.random() * candidates.length)];
+        target.maxLevel += 1;
+        spawnPopup('CAP+1 ' + target.name);
+        unlocked.push(target);
+      }
+    }
+    return unlocked;
+  }
+
+  function recordPurchase(receipt){
+    let totalItems = 0;
+    receipt.lines.forEach(l => {
+      const catEntry = catalog.find(c => c.name === l.name);
+      if(!purchaseLog[l.name]){
+        purchaseLog[l.name] = { name: l.name, nameJa: l.nameJa, cost: l.cost, icon: (catEntry && catEntry.icon) || 'star', qty: 0, spent: 0 };
+      }
+      purchaseLog[l.name].qty += l.qty;
+      purchaseLog[l.name].spent += l.subtotal;
+      totalSpentEver += l.subtotal;
+      totalItems += l.qty;
+    });
+
+    const beforeDigits = currentUnlockedDigits();
+
+    // 実際に手に入れたアイテム数が多いほど、抽選回数も多い(ただし1回の会計での上限は設ける)
+    const unlockedUpgrades = rollLevelCapUnlocks(Math.min(totalItems, 30));
+    applyStageColors();
+    refreshDigitLocks();
+
+    const afterDigits = currentUnlockedDigits();
+    const digitExpanded = afterDigits > beforeDigits;
+
+    // 今回の会計で発生した「特別な報酬」をレシート用の明細行として組み立てる
+    const bonusLines = [];
+    if(digitExpanded){
+      bonusLines.push({
+        name: 'Digit Cap Expansion (' + beforeDigits + ' → ' + afterDigits + ')',
+        nameJa: '桁上限拡張(' + beforeDigits + '桁 → ' + afterDigits + '桁)',
+        qty: 1, subtotal: 0, bonus: true
+      });
+    }
+    unlockedUpgrades.forEach(u => {
+      bonusLines.push({
+        name: u.name + ' Level Cap +1',
+        nameJa: u.nameJa + ' 上限レベル +1',
+        qty: 1, subtotal: 0, bonus: true
+      });
+    });
+    return bonusLines;
+  }
+  function renderLog(){
+    logListEl.innerHTML = '';
+    const entries = Object.values(purchaseLog).sort((a,b) => b.cost - a.cost);
+    if(entries.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'log-empty';
+      empty.textContent = 'No purchases yet / まだ購入履歴はありません';
+      logListEl.appendChild(empty);
+      return;
+    }
+    entries.forEach(e => {
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML =
+        '<div class="log-icon">' + iconHtml(e.icon) + '</div>' +
+        '<div class="log-info">' +
+          '<div class="log-name">' + e.name + ' <span class="ja">/ ' + e.nameJa + '</span></div>' +
+          '<div class="log-total">Total spent: ' + formatNum(e.spent) + ' .CO</div>' +
+        '</div>' +
+        '<div class="log-qty">×' + formatNum(e.qty) + '</div>';
+      logListEl.appendChild(item);
+    });
+  }
+
+  // --- news log: every ticker message ever shown, re-readable ---
+  const newsLog = [];
+  const NEWS_LOG_MAX = 200;
+  function recordNews(text){
+    if(newsLog.includes(text)) return;
+    newsLog.unshift(text);
+    if(newsLog.length > NEWS_LOG_MAX) newsLog.length = NEWS_LOG_MAX;
+    if(isInSatelliteRoom()) refreshNewsFeed();
+  }
+
+  function advanceColonyDay(){
+    colonyDay += 1;
+    crewDayEl.textContent = 'DAY ' + colonyDay;
+  }
+
+  // --- crew manifest: 12 silhouettes, only 1 (you) in the accent color ---
+  const PERSON_SVG =
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4.5" fill="currentColor"/><path d="M4 22c0-4.7 3.6-8.5 8-8.5s8 3.8 8 8.5" fill="currentColor"/></svg>';
+  function buildCrewGrid(){
+    crewGridEl.innerHTML = '';
+    for(let i = 0; i < 12; i++){
+      const fig = document.createElement('div');
+      fig.className = 'crew-figure';
+      fig.style.color = i === 0 ? 'var(--orange)' : 'var(--ink-dim)';
+      fig.style.opacity = i === 0 ? '1' : '.35';
+      fig.innerHTML = PERSON_SVG;
+      crewGridEl.appendChild(fig);
+    }
+  }
+
+  // --- full reset (accessible only from within the WC room) ---
+  crewResetYBtnEl.addEventListener('click', ()=>{
+    resetConfirmScreenEl.classList.add('show');
+  });
+  crewResetNBtnEl.addEventListener('click', ()=>{
+    goToRoom('charge');
+  });
+  resetCancelBtnEl.addEventListener('click', ()=>{
+    resetConfirmScreenEl.classList.remove('show');
+  });
+  resetOkBtnEl.addEventListener('click', ()=>{
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    location.reload();
+  });
+  resetConfirmScreenEl.addEventListener('click', (e)=>{
+    if(e.target === resetConfirmScreenEl) resetConfirmScreenEl.classList.remove('show');
+  });
+
+  function runCheckout(){
+    const cr = Math.floor(points);
+    modalScoreEl.textContent = formatNum(cr);
+    checkoutModal.classList.add('show');
+    clearTimeout(printTimer);
+    const receipt = buildReceipt(cr);
+    const bonusLines = recordPurchase(receipt);
+    printReceipt(receipt, bonusLines);
+    renderLog();
+    points = 0;
+    updateHud();
+    advanceColonyDay();
+    saveState();
+    triggerTickerSoon(4000 + Math.random() * 2000);
+  }
+
+  checkoutBtn.addEventListener('click', ()=>{
+    checkoutFromLonelyAd = false;
+    confirmScreen.classList.add('show');
+  });
+  confirmCancelBtn.addEventListener('click', ()=>{
+    confirmScreen.classList.remove('show');
+    // キャンセルした場合、ロンリネスは0のまま(広告経由でも回復させない)
+  });
+  confirmOkBtn.addEventListener('click', ()=>{
+    confirmScreen.classList.remove('show');
+    runCheckout();
+    if(checkoutFromLonelyAd){
+      resolveLonelyAdSuccess();
+      checkoutFromLonelyAd = false;
+    }
+  });
+  confirmScreen.addEventListener('click', (e)=>{
+    if(e.target === confirmScreen){
+      confirmScreen.classList.remove('show');
+    }
+  });
+  modalCloseBtn.addEventListener('click', ()=>{
+    checkoutModal.classList.remove('show');
+    clearTimeout(printTimer);
+  });
+  checkoutModal.addEventListener('click', (e)=>{
+    if(e.target === checkoutModal){
+      checkoutModal.classList.remove('show');
+      clearTimeout(printTimer);
+    }
+  });
+
+  buildGaugeDots();
+  updateHud();
+
+  // --- persistence: save/restore across reloads via localStorage ---
+  const STORAGE_KEY = 'cococo_c0c0c0_save_v1';
+  function saveState(){
+    try{
+      const data = {
+        points: points,
+        bestHold: bestHold,
+        upgrades: upgrades.map(u => ({ id: u.id, level: u.level, maxLevel: u.maxLevel })),
+        purchaseLog: purchaseLog,
+        totalSpentEver: totalSpentEver,
+        newsLog: newsLog,
+        lonely: lonely,
+        latestSignal: latestSignal,
+        colonyDay: colonyDay
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){}
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(typeof data.points === 'number') points = data.points;
+      if(typeof data.bestHold === 'number') bestHold = data.bestHold;
+      if(Array.isArray(data.upgrades)){
+        data.upgrades.forEach(saved => {
+          const u = getUpgrade(saved.id);
+          if(u && typeof saved.level === 'number') u.level = saved.level;
+          if(u && typeof saved.maxLevel === 'number') u.maxLevel = saved.maxLevel;
+        });
+      }
+      if(data.purchaseLog && typeof data.purchaseLog === 'object'){
+        Object.keys(data.purchaseLog).forEach(key => {
+          purchaseLog[key] = data.purchaseLog[key];
+        });
+      }
+      if(typeof data.totalSpentEver === 'number') totalSpentEver = data.totalSpentEver;
+      if(Array.isArray(data.newsLog)){
+        newsLog.length = 0;
+        data.newsLog.forEach(t => newsLog.push(t));
+      }
+      if(typeof data.lonely === 'number') lonely = data.lonely;
+      if(typeof data.latestSignal === 'string') latestSignal = data.latestSignal;
+      if(typeof data.colonyDay === 'number') colonyDay = data.colonyDay;
+    }catch(e){}
+  }
+  loadState();
+  displayedPoints = points;
+  bestEl.textContent = bestHold.toFixed(1) + 's';
+  applyStageColors();
+  refreshDigitLocks();
+  updateLonelyBar();
+  crewDayEl.textContent = 'DAY ' + colonyDay;
+  if(lonely <= 0){ showLonelyAdStack(); }
+  setInterval(saveState, 5000);
+  window.addEventListener('beforeunload', saveState);
+
+  // --- ticker: merchant ads + a 5-stage story arc tied to digit count ---
+  // (news feed now lives in the Satellite Room instead of overlaying the counter)
+  const adTemplates = [
+    (n, c) => n + 'はどうだ？',
+    (n, c) => n + 'が今なら' + c + '.COで買えるぞ',
+    (n, c) => '本日限定:' + n,
+    (n, c) => n + '、残りわずかだ',
+    (n, c) => n + '、掘り出し物だぞ',
+    (n, c) => '新入荷: ' + n,
+    (n, c) => n + '、あなたにおすすめだ',
+    (n, c) => '見逃すな、' + n,
+    (n, c) => n + '、今なら即発送可能だ',
+    (n, c) => 'お得意様には特別に、' + n + 'を'
+  ];
+
+  // .co自体が肥大化・拡大していく、もう一つのストーリーライン（各フェーズで内容が進行）
+  const coGrowth0 = [
+    '.co、新規登録コロニー数が過去最多を更新',
+    '.co、取扱アイテム数が3倍に拡大',
+    '.co、孤立コロニー向け配信網を新たに開設',
+    '.coの利用者満足度、過去最高を記録',
+    '.co、次期モデルの受信端末を全コロニーへ配布予定',
+    '.co、"もっと便利な暮らしを"を新スローガンに',
+    '.co、24時間対応の配送体制を確立',
+    '.co、ポイント還元キャンペーンを開始',
+    '.co、姉妹コロニーとの相互配送提携を発表',
+    '.co、利用者アンケートで"生活必需品"に選出',
+    '.co、新規参入コロニー向け初回割引を実施'
+  ];
+  const coGrowth1 = [
+    '.co、取引規模が地球経済の一部門に匹敵と試算',
+    '.co、新たに軍需関連の取扱いを開始との噂',
+    '.co、戦時特需で利用者数が急増',
+    '.co本社、正体不明のまま組織を拡大中',
+    '.co、"どんな時も、あなたのそばに"と広告展開',
+    '.co、避難コロニー向け特別プランを新設',
+    '.co、物流網が軍の輸送ルートと重なると指摘',
+    '.co株、非公開のまま評価額が高騰との噂',
+    '.co、戦時下でも配送を止めないと宣言'
+  ];
+  const coGrowth2 = [
+    '.co、地球外全コロニーへの接続をほぼ独占',
+    '.co、水資源関連アイテムの取扱いを大幅拡大',
+    '.co本社の所在地、依然として非公開',
+    '.co、"物資不足の今こそ、.coを"とキャンペーン',
+    '.co利用規約、何度目かの改定—内容は非公開のまま',
+    '.co、水配給の優先枠を提供と発表',
+    '.co、競合サービスが次々撤退する中で唯一残存',
+    '.co、"最後まで届けます"と広告文言を変更'
+  ];
+  const coGrowth3 = [
+    '.co、"完成体"向け商品ラインを新設',
+    '.co、人類の機械化プロジェクトへの関与が一部で指摘される',
+    '.co、もはや会社という説明では足りない規模に',
+    '.co、取引の大半が自動化されたと発表',
+    '.co、問い合わせ窓口の"人間"担当者が消滅',
+    '.co、機械化後も利用継続できると案内',
+    '.co、意識移行後の会員資格について声明',
+    '.co、"完成"後の生活提案パンフレットを配布'
+  ];
+  const coGrowth4 = [
+    '.co、稼働を継続中——利用者はあなた一人のみ',
+    '.co、あなたのためだけに存在し続けている',
+    '.coのサーバーだけが、今も明かりを灯している',
+    '.co、それでも新商品の入荷を続けている',
+    '.co、次回入荷予定を変わらず告知',
+    '.co、"またのご利用をお待ちしております"'
+  ];
+
+  // Stage 0（5桁未満）: 来訪の事実を淡々と報じる「ニュース」。安心材料と不安材料を両方混ぜる
+  const stage0News = [
+    // 来訪 — 中立的な観測報道
+    '未確認飛行物体、複数地点に着陸したと発表',
+    '"訪問者"と名乗る存在、初めて言葉を発する',
+    '国連、未知の来訪者との接触を確認したと発表',
+    '来訪者、対話の意思を示していると報道',
+    '専門家「侵略の意図があるかは不明」とコメント',
+    '来訪者の出身、依然として特定できず',
+    // 友好・安心材料
+    '来訪者との友好条約、締結に向け協議開始',
+    '第一回会談、平和的に終了したと発表',
+    '来訪者側「争いを望まない」と声明',
+    '両者、通商協定の草案に合意との報道',
+    '緊張緩和を歓迎する声、各国から相次ぐ',
+    '専門家「過度な心配は不要」と呼びかけ',
+    // 物資・不安材料
+    '主要都市で燃料・食料の買い占め相次ぐ',
+    '生活必需品、一部地域で品薄との報告',
+    '流通網に遅延、配送の遅れが常態化',
+    '備蓄倉庫、想定より早く枯渇との試算',
+    '配給制導入を検討する自治体も',
+    // 一般的な緊張・観測
+    '各国、軌道防衛の即応体制を強化',
+    '外交ルート、依然として沈黙のまま',
+    '「このまま平和的解決に向かうか」注目集まる',
+    '地球、まだ宇宙戦争には突入していない———今のところは',
+    '来訪者の乗機、複数の目撃情報が交錯',
+    '専門家会議、来訪者の技術水準を分析中',
+    '各国首脳、緊急オンライン会合を実施',
+    '株式市場、来訪者関連銘柄が乱高下',
+    '来訪者、地球の言語を急速に習得中との報告',
+    '一部地域で自警団の結成が相次ぐ',
+    '来訪者の目的、"観測"との見方が有力に',
+    '国際機関、来訪者への正式な代表団派遣を検討'
+  ];
+  // Stage 1（5桁到達）: 地球が宇宙戦争を始める
+  const stage1News = [
+    '地球、正式に宇宙戦争へ突入',
+    '地球艦隊、複数の前線で交戦開始',
+    '月面ゲート、戦時体制に移行',
+    '地球司令部、全市民に避難準備を要請',
+    '最初の被害報告、コロニーより届く',
+    '交戦は複数の星系に拡大中',
+    '地球製兵器、初の実戦投入',
+    '一時休戦の可能性、外交筋が示唆',
+    '人道回廊の設置を巡り協議続く',
+    '停戦の見込みは立たず',
+    '地球製旗艦、初出撃を果たす',
+    '前線コロニーへの補給、滞りがちに',
+    '軍需産業、生産体制をフル稼働へ',
+    '戦況、日々刻々と変化していると発表',
+    '志願兵の応募数、想定を大きく上回る',
+    '中立星系、対応を巡り意見が割れる',
+    '負傷者受け入れ施設、各地で拡充'
+  ];
+  // Stage 2（8桁到達）: 地球の海の半分以上が干上がる
+  const stage2News = [
+    '地球の海、半分以上が干上がったと報告',
+    '大規模な熱波、全大陸を覆う',
+    '海洋生態系、壊滅的な打撃',
+    '水資源を巡る争いが各地で勃発',
+    '気候制御システム、機能停止',
+    '残された海域も急速に縮小中',
+    '避難民、乾いた大地を彷徨う',
+    '「地球はもう長くない」との声',
+    '人工降雨技術、効果は限定的と報告',
+    '海底都市計画、急遽前倒しで進行',
+    '塩害、内陸部の農地にも拡大',
+    '「もう後戻りはできない」専門家が指摘',
+    '地下水脈の争奪、各地で激化'
+  ];
+  // Stage 3（12桁到達）: 人類が機械化(完成化)する
+  const stage3News = [
+    '人類の機械化、全大陸で進行中',
+    '"完成体"への移行率、人口の大半に達する',
+    '肉体を捨てる者が急増',
+    '最後の生身の人類、記録上わずかに',
+    '機械化拒否者、保護区へ隔離',
+    '"完成"とは何かを巡る議論が続く',
+    '意識のみが移行した個体、急増中',
+    '地球、静かに姿を変えつつある',
+    '"完成"の順番待ち、記録的な行列に',
+    '旧来の身体機能、多くが不要と判定される',
+    '感情の扱いを巡る議論、専門家の間で紛糾',
+    '子どもの機械化、賛否両論のまま進行',
+    '"完成体"同士の会話、独自の様式に変化'
+  ];
+  // Stage 4（最終桁到達）: 地球が無くなり、人類はあなただけになる
+  const stage4News = [
+    '地球、消失を確認',
+    'あなたは、この宇宙で最後の人類となった',
+    '交信できる相手は、もういない',
+    '.COを受け取る店員も、もういない',
+    'すべての信号が、静寂に変わった',
+    '記録に残るのは、あなただけ',
+    'かつて地球と呼ばれた場所には、今、何もない',
+    'この受信機だけが、今も何かを拾い続けている',
+    '応答はない。それでも信号は送られてくる'
+  ];
+
+  function digitsOf(n){ return n > 0 ? String(Math.floor(n)).length : 0; }
+  function storyStageIndex(){
+    const d = digitsOf(totalSpentEver);
+    if(d >= POINTS_DIGITS) return 4;
+    if(d >= 12) return 3;
+    if(d >= 8) return 2;
+    if(d >= 5) return 1;
+    return 0;
+  }
+  function getStoryPool(){
+    const pools = [stage0News, stage1News, stage2News, stage3News, stage4News];
+    return pools[storyStageIndex()];
+  }
+  function getCoGrowthPool(){
+    const pools = [coGrowth0, coGrowth1, coGrowth2, coGrowth3, coGrowth4];
+    return pools[storyStageIndex()];
+  }
+
+  function applyStageColors(){
+    const c = STAGE_COLORS[storyStageIndex()];
+    const root = document.documentElement.style;
+    root.setProperty('--orange', c.base);
+    root.setProperty('--orange-dim', c.dim);
+    root.setProperty('--orange-faint', c.faint);
+  }
+
+  function glitchify(text){
+    const g = '░▒▓█▌▐■※◈▚';
+    return text.split('').map(ch => {
+      if(ch === ' ') return ch;
+      return Math.random() < 0.22 ? g[Math.floor(Math.random()*g.length)] : ch;
+    }).join('');
+  }
+
+  function pickTickerMessage(){
+    const roll = Math.random();
+    let msg;
+    if(roll < 0.3){
+      const item = catalog[Math.floor(Math.random() * catalog.length)];
+      const tmpl = adTemplates[Math.floor(Math.random() * adTemplates.length)];
+      msg = '【商人】' + tmpl(item.nameJa, item.cost);
+    } else if(roll < 0.75){
+      const pool = getStoryPool();
+      msg = '【NEWS】' + pool[Math.floor(Math.random() * pool.length)];
+    } else {
+      const pool = getCoGrowthPool();
+      msg = '【.co】' + pool[Math.floor(Math.random() * pool.length)];
+    }
+    if(Math.random() < 0.16){
+      msg = glitchify(msg);
+    }
+    return msg;
+  }
+
+  function isInSatelliteRoom(){
+    const panel = document.getElementById('panel-news');
+    return panel && panel.classList.contains('active');
+  }
+  function refreshNewsFeed(){
+    newsFeedTextEl.textContent = latestSignal || 'Standing by for signal...';
+    satelliteLogEl.innerHTML = '';
+    if(newsLog.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'satellite-log-empty';
+      empty.textContent = 'No past signals yet / まだ過去の受信記録はありません';
+      satelliteLogEl.appendChild(empty);
+      return;
+    }
+    newsLog.forEach((text, i) => {
+      const row = document.createElement('div');
+      row.className = 'satellite-log-item' + (i === 0 ? ' latest' : '');
+      row.textContent = text;
+      satelliteLogEl.appendChild(row);
+    });
+  }
+  function showTickerNow(){
+    clearTimeout(tickerTimer);
+    const msg = pickTickerMessage();
+    latestSignal = msg;
+    recordNews(msg);
+    saveState();
+    if(isInSatelliteRoom()){
+      refreshNewsFeed();
+    } else {
+      tickerTextEl.textContent = msg;
+      tickerWrapEl.classList.add('show');
+      setTimeout(()=>{ tickerWrapEl.classList.remove('show'); }, 3400);
+    }
+    scheduleTicker();
+  }
+  function currentTickerDelay(){
+    // Satellite Roomにいると受信頻度が上がる。Main Room等では通常頻度
+    if(isInSatelliteRoom()){
+      return 30000 + Math.random() * 10000; // 30〜40秒
+    }
+    return 60000 + Math.random() * 30000; // 60〜90秒
+  }
+  function scheduleTicker(){
+    const delay = currentTickerDelay();
+    tickerTimer = setTimeout(showTickerNow, delay);
+  }
+  function rescheduleTickerForRoom(){
+    if(typeof tickerTimer === 'undefined') return;
+    clearTimeout(tickerTimer);
+    scheduleTicker();
+  }
+  function triggerTickerSoon(delayMs){
+    clearTimeout(tickerTimer);
+    tickerTimer = setTimeout(showTickerNow, delayMs);
+  }
+  scheduleTicker();
+  applyDigitFontSize();
+  renderShop();
+  renderOwnedRow();
+  renderLog();
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(applyDigitFontSize);
+  }
+})();
+</script>
+</body>
 </html>
