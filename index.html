@@ -187,6 +187,13 @@
     font-family:"Courier New", monospace; font-size:11px;
     text-align:center; padding:10px 24px; letter-spacing:.02em;
   }
+  .staff-message{
+    font-size:10px; color:var(--orange); line-height:1.6; margin-bottom:8px;
+    min-height:14px; opacity:0; transition:opacity .5s ease;
+    padding-right:84px; padding-left:10px; border-left:2px solid var(--orange);
+    word-break:break-word; font-weight:600;
+  }
+  .staff-message.show{ opacity:1; }
   .lonely-thought{
     font-size:10px; color:var(--ink-dim); line-height:1.6; margin-bottom:10px;
     min-height:14px; opacity:0; transition:opacity .5s ease;
@@ -339,6 +346,12 @@
   }
   .crew-figure{ width:100%; }
   .crew-figure svg{ width:100%; height:auto; }
+  .crew-figure.ai svg{ opacity:.7; }
+  .crew-figure.ai{ position:relative; }
+  .crew-figure.ai::after{
+    content:''; position:absolute; inset:8% 15%; border:1px dashed currentColor;
+    border-radius:50%; opacity:.6; pointer-events:none;
+  }
   .crew-day{
     font-size:10px; color:var(--ink-dim); letter-spacing:.1em; font-weight:700;
     text-transform:uppercase; margin-bottom:16px;
@@ -578,6 +591,7 @@
         </div>
       </div>
       <div class="footer">
+        <div class="staff-message" id="staffMessage"></div>
         <div class="lonely-thought" id="lonelyThought"></div>
         <div class="lonely-row">
           <div class="lonely-label">LONELINESS</div>
@@ -611,10 +625,10 @@
 
     <div class="panel" id="panel-wc">
       <div class="shop-hint">Crew Manifest / 乗員名簿</div>
-      <div class="crew-count">1<span class="crew-count-of">/12</span></div>
+      <div class="crew-count"><span id="crewCountNum">1</span><span class="crew-count-of">/12</span></div>
       <div class="crew-grid" id="crewGrid"></div>
       <div class="crew-day" id="crewDay">DAY 1</div>
-      <div class="crew-note">You are the only one left aboard.<br>この船には、あなたしか残っていません。</div>
+      <div class="crew-note" id="crewNote">You are the only one left aboard.<br>この船には、あなたしか残っていません。</div>
 
       <div class="crew-reset-row">
         <span class="crew-reset-text">Start over completely? / 全て初めからやり直しますか？</span>
@@ -754,6 +768,8 @@
   const lonelyFillEl = document.getElementById('lonelyFill');
   const crewDayEl = document.getElementById('crewDay');
   const crewGridEl = document.getElementById('crewGrid');
+  const crewCountNumEl = document.getElementById('crewCountNum');
+  const crewNoteEl = document.getElementById('crewNote');
   const crewResetYBtnEl = document.getElementById('crewResetYBtn');
   const crewResetNBtnEl = document.getElementById('crewResetNBtn');
   const resetConfirmScreenEl = document.getElementById('resetConfirmScreen');
@@ -763,6 +779,7 @@
   const lonelyAdCardsEl = document.getElementById('lonelyAdCards');
   const newsFeedTextEl = document.getElementById('newsFeedText');
   const lonelyThoughtEl = document.getElementById('lonelyThought');
+  const staffMessageEl = document.getElementById('staffMessage');
   const tickerWrapEl = document.getElementById('tickerWrap');
   const tickerTextEl = document.getElementById('tickerText');
   const satelliteLogEl = document.getElementById('satelliteLog');
@@ -778,6 +795,7 @@
   let lonely = 100;
   let latestSignal = null;
   let colonyDay = 1;
+  let aiCrewCount = 0; // 「人間の代わり」を購入した数。WCの生存人数に反映される(最大11)
   let tickerTimer = null;
   let holding = false;
   let startTime = 0;
@@ -1037,6 +1055,34 @@
     // カウンターが実際に回転している間、鳴り続ける「ガリガリ」ループ音
     // ノコギリ波(粒の粗さ)+フィルターをかけたノイズ(重み)を混ぜ、低めの歯車のような質感にする
     let counterSpinNodes = null;
+    let counterClickTimer = null;
+    function playMechanicalClick(gainValue){
+      const c = ensureCtx();
+      if(!c) return;
+      const t0 = c.currentTime;
+
+      const osc = c.createOscillator();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1800, t0);
+      const g = c.createGain();
+      g.gain.setValueAtTime(gainValue, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.012);
+      osc.connect(g);
+      g.connect(sfxGain);
+      osc.start(t0);
+      osc.stop(t0 + 0.015);
+
+      const tickOsc = c.createOscillator();
+      tickOsc.type = 'square';
+      tickOsc.frequency.setValueAtTime(4200, t0);
+      const tickGain = c.createGain();
+      tickGain.gain.setValueAtTime(gainValue * 0.5, t0);
+      tickGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.004);
+      tickOsc.connect(tickGain);
+      tickGain.connect(sfxGain);
+      tickOsc.start(t0);
+      tickOsc.stop(t0 + 0.006);
+    }
     function sfxCounterSpinStart(){
       const c = ensureCtx();
       if(!c || counterSpinNodes) return;
@@ -1088,8 +1134,14 @@
       oscGain.gain.setTargetAtTime(0.1, t0, 0.05);
       grainLfoGain.gain.setTargetAtTime(0.06, t0, 0.05);
       noiseGain.gain.setTargetAtTime(0.05, t0, 0.05);
+
+      // ガリガリの上に、機械的なカチカチ音を一定間隔で重ねて鳴らし続ける
+      clearInterval(counterClickTimer);
+      counterClickTimer = setInterval(()=>{ playMechanicalClick(0.11); }, 55);
     }
     function sfxCounterSpinStop(){
+      clearInterval(counterClickTimer);
+      counterClickTimer = null;
       if(!counterSpinNodes || !ctx) return;
       const c = ctx;
       const { osc, oscGain, grainLfo, grainLfoGain, noise, noiseGain } = counterSpinNodes;
@@ -1103,10 +1155,45 @@
       noise.stop(t0 + 0.4);
     }
 
+    // リリース直後だけ鳴る、短く軽やかなクリック連打(「カリカリ」)
+    function playReleaseClicks(count, interval, gainValue){
+      const c = ensureCtx();
+      if(!c) return;
+      for(let i = 0; i < count; i++){
+        const t0 = c.currentTime + i * interval;
+
+        // 「カチッ」の芯となる短いクリック(固定周波数、極短の減衰)
+        const osc = c.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1800, t0);
+        const g = c.createGain();
+        g.gain.setValueAtTime(gainValue, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.012);
+        osc.connect(g);
+        g.connect(sfxGain);
+        osc.start(t0);
+        osc.stop(t0 + 0.015);
+
+        // 接点が当たる瞬間の「コツッ」というアタック感(高域のごく短いクリック)
+        const tickOsc = c.createOscillator();
+        tickOsc.type = 'square';
+        tickOsc.frequency.setValueAtTime(4200, t0);
+        const tickGain = c.createGain();
+        tickGain.gain.setValueAtTime(gainValue * 0.5, t0);
+        tickGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.004);
+        tickOsc.connect(tickGain);
+        tickGain.connect(sfxGain);
+        tickOsc.start(t0);
+        tickOsc.stop(t0 + 0.006);
+      }
+    }
+
     function sfxRelease(strength){
-      // strength(0〜1): 保持時間が長いほど、シャー音が長く鳴る
+      // strength(0〜1): 保持時間が長いほど、シャー音は長く、カチカチの回数も増える
       const burstDuration = 0.18 + strength * 0.35;
       playNoiseBurst(burstDuration, 0.22, 2400 + strength * 1800);
+      const clickCount = Math.round(5 + strength * 14);
+      playReleaseClicks(clickCount, burstDuration / clickCount, 0.16);
     }
     function sfxCheckout(){
       // レジ的な短い上昇アルペジオ
@@ -1624,6 +1711,7 @@
     { name: 'Personal Shield Generator', nameJa: '携帯用シールド発生装置', cost: 150 },
     { name: 'Cybernetic Index Finger', nameJa: 'サイバネティック人差し指', cost: 300 },
     { name: 'AI Companion Chip (basic)', nameJa: 'AIコンパニオンチップ(基本)', cost: 600 },
+    { name: 'Synthetic Crew Unit', nameJa: '合成乗員ユニット', cost: 1800000, aiCrew: true },
     { name: 'Cloaking Device (civilian grade)', nameJa: '民間用ステルス装置', cost: 1200 },
     { name: 'Warp Core Fragment', nameJa: 'ワープコアの破片', cost: 2500 },
     { name: 'Terraforming Seed Pod', nameJa: 'テラフォーミング用種子ポッド', cost: 5000 },
@@ -1735,6 +1823,7 @@
 
   function recordPurchase(receipt){
     let totalItems = 0;
+    let aiCrewGained = 0;
     receipt.lines.forEach(l => {
       const catEntry = catalog.find(c => c.name === l.name);
       if(!purchaseLog[l.name]){
@@ -1744,7 +1833,16 @@
       purchaseLog[l.name].spent += l.subtotal;
       totalSpentEver += l.subtotal;
       totalItems += l.qty;
+      if(catEntry && catEntry.aiCrew){
+        aiCrewGained += l.qty;
+      }
     });
+
+    if(aiCrewGained > 0){
+      const before = aiCrewCount;
+      aiCrewCount = Math.min(aiCrewCount + aiCrewGained, 11);
+      aiCrewGained = aiCrewCount - before; // 上限で切り詰められた分を反映
+    }
 
     const beforeDigits = currentUnlockedDigits();
 
@@ -1762,6 +1860,13 @@
       bonusLines.push({
         name: 'Digit Cap Expansion (' + beforeDigits + ' → ' + afterDigits + ')',
         nameJa: '桁上限拡張(' + beforeDigits + '桁 → ' + afterDigits + '桁)',
+        qty: 1, subtotal: 0, bonus: true
+      });
+    }
+    if(aiCrewGained > 0){
+      bonusLines.push({
+        name: 'Crew Manifest Updated (' + aiCrewCount + '/12)',
+        nameJa: '乗員名簿を更新(' + aiCrewCount + '/12)',
         qty: 1, subtotal: 0, bonus: true
       });
     }
@@ -1813,18 +1918,35 @@
     crewDayEl.textContent = 'DAY ' + colonyDay;
   }
 
-  // --- crew manifest: 12 silhouettes, only 1 (you) in the accent color ---
+  // --- crew manifest: 12 silhouettes. You(1) + AI crew(aiCrewCount) + empty seats ---
   const PERSON_SVG =
     '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4.5" fill="currentColor"/><path d="M4 22c0-4.7 3.6-8.5 8-8.5s8 3.8 8 8.5" fill="currentColor"/></svg>';
   function buildCrewGrid(){
     crewGridEl.innerHTML = '';
+    const totalPresent = 1 + aiCrewCount; // あなた + AIクルー
     for(let i = 0; i < 12; i++){
       const fig = document.createElement('div');
-      fig.className = 'crew-figure';
-      fig.style.color = i === 0 ? 'var(--orange)' : 'var(--ink-dim)';
-      fig.style.opacity = i === 0 ? '1' : '.35';
+      if(i === 0){
+        fig.className = 'crew-figure';
+        fig.style.color = 'var(--orange)';
+        fig.style.opacity = '1';
+      } else if(i < totalPresent){
+        fig.className = 'crew-figure ai';
+        fig.style.color = 'var(--orange)';
+        fig.style.opacity = '.75';
+      } else {
+        fig.className = 'crew-figure';
+        fig.style.color = 'var(--ink-dim)';
+        fig.style.opacity = '.35';
+      }
       fig.innerHTML = PERSON_SVG;
       crewGridEl.appendChild(fig);
+    }
+    crewCountNumEl.textContent = String(totalPresent);
+    if(aiCrewCount > 0){
+      crewNoteEl.innerHTML = aiCrewCount + ' synthetic crew members are aboard alongside you.<br>' + aiCrewCount + '体の合成乗員が、あなたと共にこの船にいます。';
+    } else {
+      crewNoteEl.innerHTML = 'You are the only one left aboard.<br>この船には、あなたしか残っていません。';
     }
   }
 
@@ -1861,6 +1983,7 @@
     advanceColonyDay();
     saveState();
     triggerTickerSoon(4000 + Math.random() * 2000);
+    triggerStaffMessageSoon(2500 + Math.random() * 1500);
   }
 
   checkoutBtn.addEventListener('click', ()=>{
@@ -1911,7 +2034,8 @@
         newsLog: newsLog,
         lonely: lonely,
         latestSignal: latestSignal,
-        colonyDay: colonyDay
+        colonyDay: colonyDay,
+        aiCrewCount: aiCrewCount
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }catch(e){}
@@ -1943,6 +2067,7 @@
       if(typeof data.lonely === 'number') lonely = data.lonely;
       if(typeof data.latestSignal === 'string') latestSignal = data.latestSignal;
       if(typeof data.colonyDay === 'number') colonyDay = data.colonyDay;
+      if(typeof data.aiCrewCount === 'number') aiCrewCount = data.aiCrewCount;
     }catch(e){}
   }
   loadState();
@@ -2266,7 +2391,12 @@
     '買い物のたびに、何かが少しずつ変わっている気がする。',
     '寂しさは、そのうち慣れると思っていた。',
     '.coに繋がっている限り、まだ一人じゃない気がする。',
-    'カウンターの数字が増えるのを見るのが、唯一の楽しみだ。'
+    'カウンターの数字が増えるのを見るのが、唯一の楽しみだ。',
+    'そろそろ、また店員を呼んでもいいかもしれない。',
+    '店員は、いつも同じ調子で応えてくれる。それが妙に安心する。',
+    'まだ店員を呼んでいない。今日はもう少し我慢しよう。',
+    '呼べば誰かが応えてくれる。それだけで、十分な気がする時がある。',
+    '店員の声を、もう少しだけ聞いていたい。'
   ];
   let lonelyThoughtTimer = null;
   function showLonelyThought(){
@@ -2288,6 +2418,35 @@
     lonelyThoughtTimer = setTimeout(showLonelyThought, delay);
   }
   scheduleLonelyThought();
+
+  // --- staff messages: 店員からの一言。温かさと不気味さの中間のトーン。基本は会計の後に届く ---
+  const staffMessages = [
+    '本日もご利用ありがとうございます。またのお越しをお待ちしております。',
+    'いつもお買い上げいただき、感謝しております。',
+    'お客様のことは、いつも記録に残っております。',
+    'ご注文、確かに承りました。',
+    'こちらこそ、いつもありがとうございます。',
+    'お客様のような方が、私どもには大切です。',
+    '本日も一日、お疲れ様でした。',
+    'またお会いできて、嬉しく思います。',
+    'ご用命があれば、いつでもお呼びください。',
+    'お客様の記録は、これからも大切に保管いたします。',
+    'ようこそ、.coへ。今日も良いお買い物を。',
+    'いつも同じ時間にいらっしゃいますね。存じております。'
+  ];
+  let staffMessageTimer = null;
+  function showStaffMessage(){
+    const text = staffMessages[Math.floor(Math.random() * staffMessages.length)];
+    staffMessageEl.textContent = '【店員】' + text;
+    staffMessageEl.classList.add('show');
+    clearTimeout(staffMessageTimer);
+    staffMessageTimer = setTimeout(()=>{
+      staffMessageEl.classList.remove('show');
+    }, 7000);
+  }
+  function triggerStaffMessageSoon(delayMs){
+    setTimeout(showStaffMessage, delayMs);
+  }
 
   applyDigitFontSize();
   renderShop();
