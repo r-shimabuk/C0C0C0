@@ -44,7 +44,19 @@
     background:var(--bg);
   }
   .hud{ width:100%; max-width:420px; flex-shrink:0; }
-  .brand-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:8px; }
+  .brand-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .mute-btn{
+    width:22px; height:22px; border:1.5px solid var(--orange); border-radius:50%;
+    background:transparent; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .mute-btn svg{ width:12px; height:12px; }
+  .mute-btn .icon-on{ stroke:var(--orange); fill:none; }
+  .mute-btn .icon-off{ stroke:var(--ink-dim); fill:none; display:none; }
+  .mute-btn.muted{ border-color:var(--ink-dim); }
+  .mute-btn.muted .icon-on{ display:none; }
+  .mute-btn.muted .icon-off{ display:block; }
   .brand{ font-size:10px; letter-spacing:.3em; color:var(--ink-dim); text-transform:uppercase; font-weight:600; }
   .brand-ext{ font-size:9px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:1px 5px; font-weight:700; }
   .hud .toprow{
@@ -495,6 +507,7 @@
   <div class="hud">
     <div class="brand-row">
       <div class="brand-ext">.CO</div>
+      <button class="mute-btn" id="muteBtn" aria-label="Toggle sound"></button>
     </div>
     <div class="toprow">
       <div class="stat-col">
@@ -520,34 +533,34 @@
   <div class="owned-row" id="ownedRow"></div>
 
   <div class="minimap">
-    <svg viewBox="0 0 420 96" class="minimap-svg">
+    <svg viewBox="0 0 400 88" class="minimap-svg">
       <!-- connecting corridors -->
-      <line class="room-connector" x1="19.5" y1="30" x2="19.5" y2="40"/>
-      <line class="room-connector" x1="85" y1="58" x2="95" y2="58"/>
-      <line class="room-connector" x1="255" y1="58" x2="265" y2="58"/>
-      <line class="room-connector" x1="349" y1="58" x2="359" y2="58"/>
+      <line class="room-connector" x1="19.5" y1="22" x2="19.5" y2="32"/>
+      <line class="room-connector" x1="85" y1="50" x2="95" y2="50"/>
+      <line class="room-connector" x1="255" y1="50" x2="265" y2="50"/>
+      <line class="room-connector" x1="349" y1="50" x2="359" y2="50"/>
 
       <!-- WC: 押すと乗員数が確認できる。接続線はWCの中心から下へ -->
       <g class="room-group" data-room="wc">
-        <rect class="room-rect wc-rect" x="2" y="10" width="35" height="20"/>
-        <text class="room-label deco" x="19.5" y="24">WC</text>
+        <rect class="room-rect wc-rect" x="2" y="2" width="35" height="20"/>
+        <text class="room-label deco" x="19.5" y="16">WC</text>
       </g>
 
       <g class="room-group" data-room="log">
-        <rect class="room-rect" x="2" y="40" width="83" height="40"/>
-        <text class="room-label" x="43.5" y="64">STORAGE</text>
+        <rect class="room-rect" x="2" y="32" width="83" height="40"/>
+        <text class="room-label" x="43.5" y="56">STORAGE</text>
       </g>
       <g class="room-group" data-room="charge">
-        <rect class="room-rect" x="95" y="30" width="160" height="50"/>
-        <text class="room-label" x="175" y="59">MAIN</text>
+        <rect class="room-rect" x="95" y="22" width="160" height="50"/>
+        <text class="room-label" x="175" y="51">MAIN</text>
       </g>
       <g class="room-group" data-room="shop">
-        <rect class="room-rect" x="265" y="40" width="84" height="40"/>
-        <text class="room-label" x="307" y="64">LAB</text>
+        <rect class="room-rect" x="265" y="32" width="84" height="40"/>
+        <text class="room-label" x="307" y="56">LAB</text>
       </g>
       <g class="room-group" data-room="news">
-        <circle class="room-rect" cx="378" cy="62" r="16"/>
-        <text class="room-label" x="378" y="40">SATELLITE</text>
+        <circle class="room-rect" cx="382" cy="54" r="18"/>
+        <text class="room-label" x="368" y="20">SATELLITE</text>
       </g>
     </svg>
   </div>
@@ -679,6 +692,7 @@
     if(!loadingReady || loadingDismissed) return;
     loadingDismissed = true;
     loadingScreen.classList.add('hide');
+    AudioSys.unlock();
     setTimeout(()=>{ loadingScreen.classList.add('gone'); }, 600);
   }
   setTimeout(()=>{
@@ -810,6 +824,7 @@
       lonelyAdCardsEl.appendChild(card);
     }
     lonelyAdEl.classList.add('show');
+    AudioSys.sfxAdPopup();
   }
   // カードを1枚だけ無視して閉じる。ロンリネスは半分だけ回復。全部閉じ終えたら次回はさらに1枚増える
   function dismissOneLonelyAd(card){
@@ -837,12 +852,301 @@
     updateLonelyBar();
     saveState();
   }
-  // --- haptic feedback only (audio removed) ---
+  // --- haptic feedback ---
   function vibrate(pattern){
     if(navigator.vibrate){
       try{ navigator.vibrate(pattern); }catch(e){}
     }
   }
+
+  // --- audio system: synthesized BGM (drone/ambient) + SFX, no external files ---
+  const AudioSys = (function(){
+    let ctx = null;
+    let masterGain = null;
+    let bgmGain = null;
+    let sfxGain = null;
+    let bgmNodes = [];
+    let bgmRunning = false;
+    let muted = true; // デフォルトはミュート。ロード画面のタップで解除を試みる
+    let holdOsc = null, holdGain = null;
+
+    function ensureCtx(){
+      if(ctx) return ctx;
+      try{
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = ctx.createGain();
+        masterGain.gain.value = muted ? 0 : 1;
+        masterGain.connect(ctx.destination);
+        bgmGain = ctx.createGain();
+        bgmGain.gain.value = 0.22;
+        bgmGain.connect(masterGain);
+        sfxGain = ctx.createGain();
+        sfxGain.gain.value = 0.5;
+        sfxGain.connect(masterGain);
+      }catch(e){ ctx = null; }
+      return ctx;
+    }
+
+    function unlock(){
+      const c = ensureCtx();
+      if(!c) return;
+      if(c.state === 'suspended'){ c.resume().catch(()=>{}); }
+      if(!bgmRunning) startBgm();
+    }
+
+    function setMuted(v){
+      muted = v;
+      if(masterGain){
+        const c = ensureCtx();
+        const now = c.currentTime;
+        masterGain.gain.cancelScheduledValues(now);
+        masterGain.gain.setTargetAtTime(muted ? 0 : 1, now, 0.15);
+      }
+      try{ localStorage.setItem('cococo_audio_muted', muted ? '1' : '0'); }catch(e){}
+    }
+    function isMuted(){ return muted; }
+    function loadMutedPref(){
+      try{
+        const saved = localStorage.getItem('cococo_audio_muted');
+        if(saved !== null) muted = saved === '1';
+      }catch(e){}
+    }
+
+    // --- BGM: low drone (detuned oscillators) + soft filtered noise, very quiet ---
+    function startBgm(){
+      const c = ensureCtx();
+      if(!c || bgmRunning) return;
+      bgmRunning = true;
+
+      const baseFreqs = [55, 55.6, 82.5]; // 低いドローン、少しデチューンして揺らぎを作る
+      baseFreqs.forEach((f, i) => {
+        const osc = c.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = f;
+        const g = c.createGain();
+        g.gain.value = i === 2 ? 0.12 : 0.2;
+        osc.connect(g);
+        g.connect(bgmGain);
+        osc.start();
+        bgmNodes.push(osc, g);
+
+        // ゆっくりとしたLFOで音量を揺らし、呼吸するような質感を出す
+        const lfo = c.createOscillator();
+        lfo.frequency.value = 0.05 + i * 0.02;
+        const lfoGain = c.createGain();
+        lfoGain.gain.value = g.gain.value * 0.6;
+        lfo.connect(lfoGain);
+        lfoGain.connect(g.gain);
+        lfo.start();
+        bgmNodes.push(lfo, lfoGain);
+      });
+
+      // フィルターをかけたホワイトノイズを薄く重ねて、宇宙船の環境音っぽさを足す
+      const bufferSize = 2 * c.sampleRate;
+      const noiseBuffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for(let i = 0; i < bufferSize; i++){ output[i] = Math.random() * 2 - 1; }
+      const noise = c.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      const noiseFilter = c.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 400;
+      const noiseGain = c.createGain();
+      noiseGain.gain.value = 0.03;
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(bgmGain);
+      noise.start();
+      bgmNodes.push(noise, noiseFilter, noiseGain);
+    }
+
+    // --- SFX ---
+    function playTone(freq, duration, type, gainValue, delay){
+      const c = ensureCtx();
+      if(!c) return;
+      const t0 = c.currentTime + (delay || 0);
+      const osc = c.createOscillator();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(gainValue || 0.3, t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(g);
+      g.connect(sfxGain);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.05);
+    }
+
+    function sfxHoldStart(){
+      const c = ensureCtx();
+      if(!c) return;
+      if(holdOsc) sfxHoldEnd();
+      holdOsc = c.createOscillator();
+      holdOsc.type = 'sine';
+      holdOsc.frequency.value = 180;
+      holdGain = c.createGain();
+      holdGain.gain.value = 0;
+      holdOsc.connect(holdGain);
+      holdGain.connect(sfxGain);
+      holdOsc.start();
+      holdGain.gain.linearRampToValueAtTime(0.12, c.currentTime + 0.08);
+    }
+    function sfxHoldUpdate(strength){
+      if(!holdOsc || !ctx) return;
+      const freq = 180 + strength * 260;
+      holdOsc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.05);
+    }
+    function sfxHoldEnd(){
+      if(!holdOsc || !ctx) return;
+      const c = ctx;
+      const osc = holdOsc, g = holdGain;
+      holdOsc = null; holdGain = null;
+      g.gain.cancelScheduledValues(c.currentTime);
+      g.gain.setTargetAtTime(0, c.currentTime, 0.08);
+      osc.stop(c.currentTime + 0.3);
+    }
+    // 短いノイズバースト(「シャー」という高速に流れる音)
+    function playNoiseBurst(duration, gainValue, filterFreq, delay){
+      const c = ensureCtx();
+      if(!c) return;
+      const t0 = c.currentTime + (delay || 0);
+      const bufferSize = Math.ceil(c.sampleRate * (duration + 0.05));
+      const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for(let i = 0; i < bufferSize; i++){ data[i] = Math.random() * 2 - 1; }
+      const src = c.createBufferSource();
+      src.buffer = buffer;
+      const filter = c.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = filterFreq || 3000;
+      filter.Q.value = 0.7;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(gainValue, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      src.connect(filter);
+      filter.connect(g);
+      g.connect(sfxGain);
+      src.start(t0);
+      src.stop(t0 + duration + 0.05);
+    }
+
+    // 短いクリック音を連打する(「カリカリ」というカウンターが回る質感)
+    // カウンターが実際に回転している間、鳴り続ける「ガリガリ」ループ音
+    // ノコギリ波(粒の粗さ)+フィルターをかけたノイズ(重み)を混ぜ、低めの歯車のような質感にする
+    let counterSpinNodes = null;
+    function sfxCounterSpinStart(){
+      const c = ensureCtx();
+      if(!c || counterSpinNodes) return;
+
+      const osc = c.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = 55;
+      const oscFilter = c.createBiquadFilter();
+      oscFilter.type = 'lowpass';
+      oscFilter.frequency.value = 320;
+      const oscGain = c.createGain();
+      oscGain.gain.value = 0;
+      osc.connect(oscFilter);
+      oscFilter.connect(oscGain);
+      oscGain.connect(sfxGain);
+      osc.start();
+
+      // ざらついた粒感を出すため、低めのランダムパルスでオシレーターの音量を細かく揺らす
+      const grainLfo = c.createOscillator();
+      grainLfo.type = 'square';
+      grainLfo.frequency.value = 26;
+      const grainLfoGain = c.createGain();
+      grainLfoGain.gain.value = 0;
+      grainLfo.connect(grainLfoGain);
+      grainLfoGain.connect(oscGain.gain);
+      grainLfo.start();
+
+      const bufferSize = 2 * c.sampleRate;
+      const noiseBuffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for(let i = 0; i < bufferSize; i++){ data[i] = Math.random() * 2 - 1; }
+      const noise = c.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      const noiseFilter = c.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.value = 500;
+      noiseFilter.Q.value = 0.6;
+      const noiseGain = c.createGain();
+      noiseGain.gain.value = 0;
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(sfxGain);
+      noise.start();
+
+      counterSpinNodes = { osc, oscGain, grainLfo, grainLfoGain, noise, noiseGain };
+
+      const t0 = c.currentTime;
+      oscGain.gain.setTargetAtTime(0.1, t0, 0.05);
+      grainLfoGain.gain.setTargetAtTime(0.06, t0, 0.05);
+      noiseGain.gain.setTargetAtTime(0.05, t0, 0.05);
+    }
+    function sfxCounterSpinStop(){
+      if(!counterSpinNodes || !ctx) return;
+      const c = ctx;
+      const { osc, oscGain, grainLfo, grainLfoGain, noise, noiseGain } = counterSpinNodes;
+      counterSpinNodes = null;
+      const t0 = c.currentTime;
+      oscGain.gain.setTargetAtTime(0, t0, 0.08);
+      grainLfoGain.gain.setTargetAtTime(0, t0, 0.08);
+      noiseGain.gain.setTargetAtTime(0, t0, 0.08);
+      osc.stop(t0 + 0.4);
+      grainLfo.stop(t0 + 0.4);
+      noise.stop(t0 + 0.4);
+    }
+
+    function sfxRelease(strength){
+      // strength(0〜1): 保持時間が長いほど、シャー音が長く鳴る
+      const burstDuration = 0.18 + strength * 0.35;
+      playNoiseBurst(burstDuration, 0.22, 2400 + strength * 1800);
+    }
+    function sfxCheckout(){
+      // レジ的な短い上昇アルペジオ
+      playTone(520, 0.12, 'square', 0.18, 0);
+      playTone(660, 0.12, 'square', 0.18, 0.08);
+      playTone(880, 0.22, 'square', 0.2, 0.16);
+    }
+    function sfxAdPopup(){
+      playTone(300, 0.18, 'sine', 0.22, 0);
+      playTone(240, 0.28, 'sine', 0.18, 0.1);
+    }
+    function sfxBuy(){
+      playTone(700, 0.15, 'triangle', 0.2);
+    }
+    function sfxRoomChange(){
+      playTone(500, 0.08, 'sine', 0.1);
+    }
+
+    return {
+      unlock, setMuted, isMuted, loadMutedPref,
+      sfxHoldStart, sfxHoldUpdate, sfxHoldEnd, sfxRelease,
+      sfxCheckout, sfxAdPopup, sfxBuy, sfxRoomChange,
+      sfxCounterSpinStart, sfxCounterSpinStop
+    };
+  })();
+  AudioSys.loadMutedPref();
+
+  const muteBtnEl = document.getElementById('muteBtn');
+  const MUTE_ICON_ON = '<svg viewBox="0 0 24 24" class="icon-on"><path d="M3 9v6h4l5 5V4L7 9H3z" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke-width="1.6" stroke-linecap="round"/><path d="M19 6a9 9 0 0 1 0 12" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const MUTE_ICON_OFF = '<svg viewBox="0 0 24 24" class="icon-off"><path d="M3 9v6h4l5 5V4L7 9H3z" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 9l6 6M21 9l-6 6" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  muteBtnEl.innerHTML = MUTE_ICON_ON + MUTE_ICON_OFF;
+  function refreshMuteBtn(){
+    muteBtnEl.classList.toggle('muted', AudioSys.isMuted());
+  }
+  refreshMuteBtn();
+  muteBtnEl.addEventListener('click', ()=>{
+    AudioSys.unlock();
+    AudioSys.setMuted(!AudioSys.isMuted());
+    refreshMuteBtn();
+  });
 
   const upgrades = [
     { id:'generator', name:'Generator', nameJa:'発電機', icon:'bolt', desc:'Passive income while idle — scales up with each level', level:0, maxLevel:15, baseCost:40, costMult:1.16 },
@@ -1057,10 +1361,20 @@
       if(gi >= lockedCount) bottomDigits[i].textContent = full[gi];
     }
   }
+  let counterSpinning = false;
   function countLoop(){
     const diff = points - displayedPoints;
     const absDiff = Math.abs(diff);
-    if(absDiff < 0.6){
+    const isSpinning = absDiff >= 0.6;
+    if(isSpinning !== counterSpinning){
+      counterSpinning = isSpinning;
+      if(counterSpinning){
+        AudioSys.sfxCounterSpinStart();
+      } else {
+        AudioSys.sfxCounterSpinStop();
+      }
+    }
+    if(!isSpinning){
       displayedPoints = points;
     } else {
       let step;
@@ -1088,6 +1402,7 @@
     const mult = currentMultiplier(sec);
     holdTimeEl.textContent = sec.toFixed(1);
     multBubbleEl.textContent = '×' + mult.toFixed(2);
+    AudioSys.sfxHoldUpdate(Math.min(sec / 8, 1));
 
     const growth = sec * currentMultPerSec();
     setGaugeRatio(growth % 1);
@@ -1113,6 +1428,7 @@
     lastTickTime = performance.now();
     lastTierPlayed = 1;
     vibrate(10);
+    AudioSys.sfxHoldStart();
     core.classList.add('charging');
     verbEl.textContent = 'CHARGING';
     multBubbleEl.classList.add('show');
@@ -1153,6 +1469,8 @@
 
     const strength = Math.min(sec / 8, 1);
     vibrate(sec >= 7 ? [25,30,45] : (sec >= 3 ? [20,20,30] : 35));
+    AudioSys.sfxHoldEnd();
+    AudioSys.sfxRelease(strength);
 
     const burstDur = Math.min(0.4 + sec * 0.1, 1.8);
     stage.style.setProperty('--burst-dur', burstDur + 's');
@@ -1251,6 +1569,7 @@
           renderShop();
           renderOwnedRow();
           spawnPopup('LV.' + u.level);
+          AudioSys.sfxBuy();
           saveState();
         }
       });
@@ -1262,6 +1581,7 @@
     });
   }
 
+  let roomChangeSfxReady = false;
   function goToRoom(roomId){
     panels.forEach(p => p.classList.remove('active'));
     const panel = document.getElementById('panel-' + roomId);
@@ -1275,6 +1595,8 @@
         g.querySelector('.room-label').classList.toggle('current', isCurrent);
       }
     });
+    if(roomChangeSfxReady) AudioSys.sfxRoomChange();
+    roomChangeSfxReady = true;
     const inMainRoom = roomId === 'charge';
     checkoutBtn.style.display = inMainRoom ? 'flex' : 'none';
     checkoutLabelEl.style.display = inMainRoom ? 'block' : 'none';
@@ -1528,6 +1850,7 @@
     const cr = Math.floor(points);
     modalScoreEl.textContent = formatNum(cr);
     checkoutModal.classList.add('show');
+    AudioSys.sfxCheckout();
     clearTimeout(printTimer);
     const receipt = buildReceipt(cr);
     const bonusLines = recordPurchase(receipt);
