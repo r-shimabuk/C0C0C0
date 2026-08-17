@@ -83,11 +83,10 @@
   .room-group{ cursor:pointer; }
   .room-rect.current{ fill:var(--orange); stroke:var(--orange); }
   .room-label{
-    font-family:"Space Grotesk", sans-serif; font-size:9px; font-weight:700;
+    font-family:"Space Grotesk", sans-serif; font-size:11px; font-weight:700;
     fill:var(--ink-dim); text-anchor:middle; pointer-events:none; letter-spacing:0;
   }
   .room-label.current{ fill:var(--bg); }
-  .room-label.compact{ font-size:7.5px; }
 
   .tabs{ width:100%; max-width:420px; display:flex; gap:0; margin:14px 0 12px; flex-shrink:0; }
   .tab{
@@ -176,6 +175,12 @@
     font-family:"Courier New", monospace; font-size:11px;
     text-align:center; padding:10px 24px; letter-spacing:.02em;
   }
+  .lonely-thought{
+    font-size:10px; color:var(--ink-dim); line-height:1.6; margin-bottom:10px;
+    min-height:14px; opacity:0; transition:opacity .5s ease;
+    padding-right:84px; word-break:break-word;
+  }
+  .lonely-thought.show{ opacity:1; }
   .lonely-row{ display:flex; align-items:center; gap:10px; }
   .lonely-label{ font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:600; white-space:nowrap; }
   .lonely-bar{ width:60%; max-width:220px; height:6px; border:1.5px solid var(--orange); position:relative; overflow:hidden; flex-shrink:0; }
@@ -240,7 +245,7 @@
   }
 
   /* --- shop panel --- */
-  #panel-shop, #panel-log, #panel-news{ overflow-y:auto; padding-top:4px; align-items:stretch; -webkit-overflow-scrolling:touch; touch-action:pan-y; min-height:0; }
+  #panel-shop, #panel-log, #panel-news, #panel-wc{ overflow-y:auto; padding-top:4px; align-items:stretch; -webkit-overflow-scrolling:touch; touch-action:pan-y; min-height:0; }
   .shop-item{
     border:1.5px solid var(--orange); background:transparent; border-radius:2px; padding:14px 14px;
     margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -515,34 +520,34 @@
   <div class="owned-row" id="ownedRow"></div>
 
   <div class="minimap">
-    <svg viewBox="0 0 400 82" class="minimap-svg">
+    <svg viewBox="0 0 420 96" class="minimap-svg">
       <!-- connecting corridors -->
-      <line class="room-connector" x1="37" y1="30" x2="37" y2="40"/>
-      <line class="room-connector" x1="151" y1="58" x2="161" y2="58"/>
-      <line class="room-connector" x1="245" y1="58" x2="255" y2="58"/>
-      <line class="room-connector" x1="339" y1="58" x2="345" y2="58"/>
+      <line class="room-connector" x1="19.5" y1="30" x2="19.5" y2="40"/>
+      <line class="room-connector" x1="85" y1="58" x2="95" y2="58"/>
+      <line class="room-connector" x1="255" y1="58" x2="265" y2="58"/>
+      <line class="room-connector" x1="349" y1="58" x2="359" y2="58"/>
 
-      <!-- WC: 押すと乗員数が確認できる。SHOPの左端と揃えて真上に配置 -->
+      <!-- WC: 押すと乗員数が確認できる。接続線はWCの中心から下へ -->
       <g class="room-group" data-room="wc">
-        <rect class="room-rect wc-rect" x="2" y="4" width="70" height="26"/>
-        <text class="room-label deco" x="37" y="21">WC</text>
+        <rect class="room-rect wc-rect" x="2" y="10" width="35" height="20"/>
+        <text class="room-label deco" x="19.5" y="24">WC</text>
       </g>
 
-      <g class="room-group" data-room="shop">
-        <rect class="room-rect" x="2" y="40" width="149" height="40"/>
-        <text class="room-label" x="76" y="64">SHOP</text>
+      <g class="room-group" data-room="log">
+        <rect class="room-rect" x="2" y="40" width="83" height="40"/>
+        <text class="room-label" x="43.5" y="64">STORAGE</text>
       </g>
       <g class="room-group" data-room="charge">
-        <rect class="room-rect" x="161" y="40" width="84" height="40"/>
-        <text class="room-label" x="203" y="64">MAIN</text>
+        <rect class="room-rect" x="95" y="30" width="160" height="50"/>
+        <text class="room-label" x="175" y="59">MAIN</text>
       </g>
-      <g class="room-group" data-room="log">
-        <rect class="room-rect" x="255" y="40" width="84" height="40"/>
-        <text class="room-label compact" x="297" y="64">STORAGE</text>
+      <g class="room-group" data-room="shop">
+        <rect class="room-rect" x="265" y="40" width="84" height="40"/>
+        <text class="room-label" x="307" y="64">LAB</text>
       </g>
       <g class="room-group" data-room="news">
-        <circle class="room-rect" cx="373" cy="60" r="20"/>
-        <text class="room-label compact" x="373" y="63">SATELLITE</text>
+        <circle class="room-rect" cx="378" cy="62" r="16"/>
+        <text class="room-label" x="378" y="40">SATELLITE</text>
       </g>
     </svg>
   </div>
@@ -560,6 +565,7 @@
         </div>
       </div>
       <div class="footer">
+        <div class="lonely-thought" id="lonelyThought"></div>
         <div class="lonely-row">
           <div class="lonely-label">LONELINESS</div>
           <div class="lonely-bar"><div class="lonely-fill" id="lonelyFill"></div></div>
@@ -568,7 +574,7 @@
     </div>
 
     <div class="panel" id="panel-shop">
-      <div class="shop-hint">Spend .CO on upgrades / .COでアップグレードを購入できます</div>
+      <div class="shop-hint">Upgrade the ship's systems with .CO / .COで船のシステムを改修できます</div>
       <div id="shopList"></div>
     </div>
 
@@ -626,7 +632,7 @@
 
   <div class="confirm-screen" id="confirmScreen">
     <div class="confirm-card">
-      <div class="confirm-text">This will spend all of your current .CO to call the staff.<br>Are you sure?<br><span style="opacity:.8;font-weight:400;">現在のポイントを全て消費して店員を呼びますが、よろしいでしょうか？</span></div>
+      <div class="confirm-text">Ask the staff to buy whatever they can with your .CO.<br>Proceed?<br><span style="opacity:.8;font-weight:400;">店員に、今あるポイントで買えるだけ買うよう依頼します。よろしいですか？</span></div>
       <div class="confirm-buttons">
         <button class="confirm-btn cancel" id="confirmCancelBtn">Cancel</button>
         <button class="confirm-btn ok" id="confirmOkBtn">Confirm</button>
@@ -742,6 +748,7 @@
   const lonelyAdEl = document.getElementById('lonelyAd');
   const lonelyAdCardsEl = document.getElementById('lonelyAdCards');
   const newsFeedTextEl = document.getElementById('newsFeedText');
+  const lonelyThoughtEl = document.getElementById('lonelyThought');
   const tickerWrapEl = document.getElementById('tickerWrap');
   const tickerTextEl = document.getElementById('tickerText');
   const satelliteLogEl = document.getElementById('satelliteLog');
@@ -1263,7 +1270,10 @@
       if(!g.dataset.room) return;
       const isCurrent = g.dataset.room === roomId;
       g.querySelector('.room-rect').classList.toggle('current', isCurrent);
-      g.querySelector('.room-label').classList.toggle('current', isCurrent);
+      // SATELLITEのラベルは円の外(上)にあるため、選択色に変えると背景に溶けて見えなくなる。常に通常色のまま
+      if(g.dataset.room !== 'news'){
+        g.querySelector('.room-label').classList.toggle('current', isCurrent);
+      }
     });
     const inMainRoom = roomId === 'charge';
     checkoutBtn.style.display = inMainRoom ? 'flex' : 'none';
@@ -1827,13 +1837,26 @@
     }).join('');
   }
 
+  const merchantHintTemplates = [
+    '買えるだけ買えば、カウンターの枠が広がることもあるらしい',
+    '大量に買い付ける客ほど、装置の上限も伸びていくという噂だ',
+    'たくさん買った客だけが、次の桁に手が届くらしいぞ',
+    'ラボの装置、上限を超えて伸びることがあると聞いた',
+    '買い物を重ねるほど、色々な上限が緩んでいくとか',
+    '常連客ほど、カウンターの表示できる桁が増えていくらしい'
+  ];
+
   function pickTickerMessage(){
     const roll = Math.random();
     let msg;
     if(roll < 0.3){
-      const item = catalog[Math.floor(Math.random() * catalog.length)];
-      const tmpl = adTemplates[Math.floor(Math.random() * adTemplates.length)];
-      msg = '【商人】' + tmpl(item.nameJa, item.cost);
+      if(Math.random() < 0.25){
+        msg = '【商人】' + merchantHintTemplates[Math.floor(Math.random() * merchantHintTemplates.length)];
+      } else {
+        const item = catalog[Math.floor(Math.random() * catalog.length)];
+        const tmpl = adTemplates[Math.floor(Math.random() * adTemplates.length)];
+        msg = '【商人】' + tmpl(item.nameJa, item.cost);
+      }
     } else if(roll < 0.75){
       const pool = getStoryPool();
       msg = '【NEWS】' + pool[Math.floor(Math.random() * pool.length)];
@@ -1904,6 +1927,45 @@
     tickerTimer = setTimeout(showTickerNow, delayMs);
   }
   scheduleTicker();
+
+  // --- lonely thoughts: 主人公の心の声。寂しさが軸だが、時々ゲームのヒントもふんわり混ぜる ---
+  const lonelyThoughts = [
+    'このコロニーには、俺しかいない。',
+    '.coを開いている時だけが、唯一まともな時間な気がする。',
+    '誰かと話したいわけじゃない。ただ、静かすぎるだけだ。',
+    '今日も.coを開いた。それだけで、少し息ができる。',
+    '店員を呼んで買えるだけ買うと、たまにカウンターの枠が広がる気がする。',
+    '気のせいかもしれないが、買い物を続けていると装置の性能も上がっていく。',
+    '窓の外は、ずっと同じ景色のままだ。',
+    '.coの広告を眺めているだけで、少し落ち着く。',
+    'また今日も、誰の声も聞いていない。',
+    'ラボの機材をいじっていると、時間を忘れられる。',
+    '買い物のたびに、何かが少しずつ変わっている気がする。',
+    '寂しさは、そのうち慣れると思っていた。',
+    '.coに繋がっている限り、まだ一人じゃない気がする。',
+    'カウンターの数字が増えるのを見るのが、唯一の楽しみだ。'
+  ];
+  let lonelyThoughtTimer = null;
+  function showLonelyThought(){
+    const text = lonelyThoughts[Math.floor(Math.random() * lonelyThoughts.length)];
+    lonelyThoughtEl.textContent = text;
+    lonelyThoughtEl.classList.add('show');
+    scheduleLonelyThoughtHide();
+  }
+  function scheduleLonelyThoughtHide(){
+    clearTimeout(lonelyThoughtTimer);
+    lonelyThoughtTimer = setTimeout(()=>{
+      lonelyThoughtEl.classList.remove('show');
+      scheduleLonelyThought();
+    }, 6000);
+  }
+  function scheduleLonelyThought(){
+    clearTimeout(lonelyThoughtTimer);
+    const delay = 20000 + Math.random() * 15000; // 20〜35秒に1回
+    lonelyThoughtTimer = setTimeout(showLonelyThought, delay);
+  }
+  scheduleLonelyThought();
+
   applyDigitFontSize();
   renderShop();
   renderOwnedRow();
