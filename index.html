@@ -570,6 +570,58 @@
   @keyframes promptPulse{
     0%,100%{ opacity:1; } 50%{ opacity:.35; }
   }
+
+  /* --- intro tutorial: 初回のみ表示される3ページのチュートリアル(ポップアップ形式) --- */
+  .intro-tutorial{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:300;
+    display:none; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .intro-tutorial.show{ display:flex; }
+  .intro-card{
+    background:var(--bg); border:1.5px solid var(--orange);
+    width:100%; max-width:340px; padding:30px 26px 24px;
+    position:relative;
+  }
+  .intro-page{ display:none; text-align:center; }
+  .intro-page.active{ display:flex; flex-direction:column; justify-content:center; }
+  .intro-page.active{ display:block; }
+  .intro-eyebrow{
+    font-size:10px; letter-spacing:.22em; color:var(--orange); font-weight:700;
+    text-transform:uppercase; margin-bottom:14px;
+  }
+  .intro-rule{
+    width:32px; height:1.5px; background:var(--orange); margin:0 auto 22px;
+  }
+  .intro-body{
+    font-size:13px; color:var(--ink); line-height:2;
+    min-height:236px;
+  }
+  .intro-body .kw{ color:var(--orange); font-weight:700; }
+  .intro-footer{
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    margin-top:28px; padding-top:20px; border-top:1.5px solid var(--orange-faint);
+  }
+  .intro-dots{ display:flex; gap:8px; }
+  .intro-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--ink-dim); opacity:.4;
+    transition:opacity .2s ease, background .2s ease;
+  }
+  .intro-dot.active{ background:var(--orange); opacity:1; }
+  .intro-btn-row{ display:flex; gap:8px; width:100%; }
+  .intro-back-btn{
+    background:transparent; color:var(--ink-dim); border:1.5px solid var(--ink-dim);
+    padding:11px 20px; font-family:inherit; font-weight:700; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
+    flex:1; visibility:hidden;
+  }
+  .intro-back-btn.show{ visibility:visible; }
+  .intro-next-btn{
+    background:var(--orange); color:var(--bg); border:1.5px solid var(--orange);
+    padding:11px 20px; font-family:inherit; font-weight:700; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
+    flex:2;
+  }
 </style>
 </head>
 <body>
@@ -587,6 +639,62 @@
   <div class="loading-story" id="loadingStory" style="display:none;">Alone in your colony, you found .co —<br>a shop that never closes.<br><span class="ja">コロニーでひとり、あなたは.coという<br>決して閉まらないネットショップにハマった。</span></div>
   <div class="loading-status">CONNECTING TO .CO<span class="dots">...</span></div>
   <div class="loading-prompt">Hold the button to access the shop<br>ボタンを長押しして、.coにアクセスしよう</div>
+</div>
+
+<div class="intro-tutorial" id="introTutorial">
+  <div class="intro-card">
+    <div class="intro-page active" data-page="1">
+      <div class="intro-eyebrow">COLONY LOG — DAY 1</div>
+      <div class="intro-rule"></div>
+      <div class="intro-body">
+        あなたは今、宇宙のどこかにある<br>
+        小さな<span class="kw">個人用コロニー</span>に、1人でいる。<br><br>
+        唯一繋がっているのは、<br>
+        いつでも開いている<br>
+        <span class="kw">.co</span> というネットショップだけ。<br><br>
+        寂しさを埋めるように、<br>
+        今日もその画面を開いてしまう。
+      </div>
+    </div>
+    <div class="intro-page" data-page="2">
+      <div class="intro-eyebrow">HOW TO PLAY</div>
+      <div class="intro-rule"></div>
+      <div class="intro-body">
+        ボタンを<span class="kw">長押し（ホールド）</span>すると、<br>
+        <span class="kw">.CO ポイント</span>が貯まっていく。<br><br>
+        長く押すほど<span class="kw">倍率</span>が上がり、<br>
+        もらえるポイントも増えていく。<br><br>
+        ポイントが貯まったら、<br>
+        「<span class="kw">店員を呼ぶ</span>」ボタンを押そう。<br><br>
+        貯めたポイントで、店員が<br>
+        買えるだけ買ってきてくれる。
+      </div>
+    </div>
+    <div class="intro-page" data-page="3">
+      <div class="intro-eyebrow">YOUR SHIP</div>
+      <div class="intro-rule"></div>
+      <div class="intro-body">
+        ボタンの上にある<span class="kw">マップ</span>から、<br>
+        船の中を移動できる。<br><br>
+        <span class="kw">STORAGE</span> — 買った物の記録を見る<br>
+        <span class="kw">LAB</span> — 装置を改修する<br>
+        <span class="kw">SATELLITE</span> — 外からの信号を受信する<br><br>
+        買い物を続けていたら、<br>
+        <span class="kw">地球に帰れるきっかけになるかもしれない。</span>
+      </div>
+    </div>
+    <div class="intro-footer">
+      <div class="intro-dots">
+        <span class="intro-dot active" data-dot="1"></span>
+        <span class="intro-dot" data-dot="2"></span>
+        <span class="intro-dot" data-dot="3"></span>
+      </div>
+      <div class="intro-btn-row">
+        <button class="intro-back-btn" id="introBackBtn">Back</button>
+        <button class="intro-next-btn" id="introNextBtn">Next</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="page-bg"></div>
 <div class="wrap">
@@ -787,10 +895,10 @@
   let loadingDismissed = false;
 
   // 初回（セーブデータなし）はストーリーだけ、2回目以降はキャッチコピーだけを表示
+  let hasSaveOnLoad = false;
   (function(){
-    let hasSave = false;
-    try{ hasSave = !!localStorage.getItem('cococo_c0c0c0_save_v1'); }catch(e){}
-    const el = document.getElementById(hasSave ? 'loadingTagline' : 'loadingStory');
+    try{ hasSaveOnLoad = !!localStorage.getItem('cococo_c0c0c0_save_v1'); }catch(e){}
+    const el = document.getElementById(hasSaveOnLoad ? 'loadingTagline' : 'loadingStory');
     if(el) el.style.display = 'block';
   })();
 
@@ -799,8 +907,45 @@
     loadingDismissed = true;
     loadingScreen.classList.add('hide');
     AudioSys.unlock();
-    setTimeout(()=>{ loadingScreen.classList.add('gone'); }, 600);
+    setTimeout(()=>{
+      loadingScreen.classList.add('gone');
+      if(!hasSaveOnLoad) showIntroTutorial();
+    }, 600);
   }
+
+  // --- intro tutorial: 初回訪問時だけ、ロード画面の直後に3ページのチュートリアルを挟む ---
+  const introTutorialEl = document.getElementById('introTutorial');
+  const introPages = document.querySelectorAll('.intro-page');
+  const introDots = document.querySelectorAll('.intro-dot');
+  const introBackBtn = document.getElementById('introBackBtn');
+  const introNextBtn = document.getElementById('introNextBtn');
+  let introPageIndex = 0;
+  function showIntroTutorial(){
+    introPageIndex = 0;
+    updateIntroPage();
+    introTutorialEl.classList.add('show');
+  }
+  function updateIntroPage(){
+    introPages.forEach((p, i) => p.classList.toggle('active', i === introPageIndex));
+    introDots.forEach((d, i) => d.classList.toggle('active', i === introPageIndex));
+    introNextBtn.textContent = introPageIndex === introPages.length - 1 ? 'Start' : 'Next';
+    introBackBtn.classList.toggle('show', introPageIndex > 0);
+  }
+  introBackBtn.addEventListener('click', ()=>{
+    if(introPageIndex > 0){
+      introPageIndex -= 1;
+      updateIntroPage();
+    }
+  });
+  introNextBtn.addEventListener('click', ()=>{
+    if(introPageIndex < introPages.length - 1){
+      introPageIndex += 1;
+      updateIntroPage();
+    } else {
+      introTutorialEl.classList.remove('show');
+    }
+  });
+
   setTimeout(()=>{
     loadingReady = true;
     loadingScreen.classList.add('ready');
