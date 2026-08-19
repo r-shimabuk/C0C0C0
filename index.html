@@ -1396,13 +1396,28 @@
 
   const DOT_COUNT = 28;
   let dots = [];
-  const STAGE_SIZE = 184; // .stageのCSS固定サイズ(width/height)と必ず一致させる
+  const STAGE_SIZE = 184; // .stageのCSS固定サイズ(width/height)のフォールバック値
   function buildGaugeDots(){
     gaugeDotsEl.innerHTML = '';
     dots = [];
-    const size = STAGE_SIZE;
-    const cx = size / 2, cy = size / 2;
-    const r = size / 2 - 4;
+
+    // stageとcoreの実際の描画座標を比較し、coreの中心を基準にドットを配置する。
+    // CSSの計算だけに頼ると、環境によるサブピクセルの丸め誤差でボタンとゲージの中心がズレることがあるため、
+    // 実測値(getBoundingClientRect)を使って必ずボタンの中心に一致させる。
+    const stageRect = stage.getBoundingClientRect();
+    const coreRect = core.getBoundingClientRect();
+    let cx, cy, r;
+    if(stageRect.width > 0 && coreRect.width > 0){
+      cx = (coreRect.left + coreRect.width / 2) - stageRect.left;
+      cy = (coreRect.top + coreRect.height / 2) - stageRect.top;
+      r = Math.max(stageRect.width, stageRect.height) / 2 - 4;
+    } else {
+      // 実測できない場合(非表示中など)はCSS固定値にフォールバック
+      cx = STAGE_SIZE / 2;
+      cy = STAGE_SIZE / 2;
+      r = STAGE_SIZE / 2 - 4;
+    }
+
     for(let i = 0; i < DOT_COUNT; i++){
       const angle = (i / DOT_COUNT) * Math.PI * 2 - Math.PI / 2;
       const x = cx + r * Math.cos(angle);
@@ -2219,6 +2234,7 @@
   });
 
   buildGaugeDots();
+  requestAnimationFrame(buildGaugeDots); // レイアウト確定後に実測値で再計算し、初回描画時の誤差を防ぐ
   updateHud();
 
   // --- persistence: save/restore across reloads via localStorage ---
