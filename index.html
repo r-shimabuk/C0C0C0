@@ -76,7 +76,7 @@
     font-variant-numeric: tabular-nums slashed-zero;
     border:1.5px solid var(--orange); border-radius:2px; padding:4px 0;
     display:flex; align-items:center; justify-content:center;
-    box-sizing:border-box;
+    box-sizing:border-box; position:relative;
   }
   .digit.brand-digit{ letter-spacing:-.05em; border:none; align-items:flex-end; padding-bottom:2px; }
   .digit.locked{
@@ -85,6 +85,19 @@
       linear-gradient(to bottom right, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
       linear-gradient(to bottom left, transparent calc(50% - 1.2px), var(--orange) calc(50% - 1.2px), var(--orange) calc(50% + 1.2px), transparent calc(50% + 1.2px));
     background-repeat:no-repeat;
+  }
+  .digit-unlock-tip{
+    position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    margin-bottom:6px; background:var(--orange); color:var(--bg);
+    font-size:8px; font-weight:700; letter-spacing:.02em;
+    padding:4px 6px; white-space:nowrap; z-index:6;
+    opacity:0; transition:opacity .3s ease; pointer-events:none;
+  }
+  .digit-unlock-tip.show{ opacity:1; }
+  .digit-unlock-tip::after{
+    content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:4px solid var(--orange);
   }
 
   .minimap{ width:100%; max-width:420px; margin:14px auto 4px; flex-shrink:0; }
@@ -188,21 +201,19 @@
     text-align:center; padding:10px 24px; letter-spacing:.02em;
   }
   .staff-message{
-    font-size:10px; color:var(--orange); line-height:1.6; margin-bottom:8px;
+    font-size:10px; color:var(--orange); line-height:1.6; margin-bottom:10px;
     min-height:14px; opacity:0; transition:opacity .5s ease;
     padding-right:84px; padding-left:10px; border-left:2px solid var(--orange);
     word-break:break-word; font-weight:600;
   }
   .staff-message.show{ opacity:1; }
-  .lonely-thought{
-    font-size:10px; color:var(--ink-dim); line-height:1.6; margin-bottom:10px;
-    min-height:14px; opacity:0; transition:opacity .5s ease;
-    padding-right:84px; word-break:break-word;
-  }
-  .lonely-thought.show{ opacity:1; }
   .lonely-row{ display:flex; align-items:center; gap:10px; }
   .lonely-label{ font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:600; white-space:nowrap; }
   .lonely-bar{ width:60%; max-width:220px; height:6px; border:1.5px solid var(--orange); position:relative; overflow:hidden; flex-shrink:0; }
+  .progress-hint{
+    font-size:8.5px; color:var(--ink-dim); letter-spacing:.04em; margin-top:8px;
+    opacity:.7; line-height:1.6; padding-right:84px; word-break:break-word;
+  }
   .lonely-fill{ position:absolute; inset:0; background:var(--orange); width:100%; transition:width .3s ease; transform-origin:left; }
 
   .satellite-dish{ width:110px; height:110px; margin:18px auto 20px; }
@@ -218,6 +229,13 @@
     font-family:"Courier New", monospace; font-size:12px; color:var(--orange); font-weight:700;
     text-align:center; padding:0 20px; line-height:1.7; min-height:60px;
   }
+  .special-signal{
+    margin:0 20px 20px; padding:14px; border:1.5px dashed var(--orange);
+    font-size:10.5px; color:var(--ink); line-height:1.7; text-align:center;
+    display:none;
+  }
+  .special-signal.show{ display:block; }
+  .special-signal .en{ color:var(--orange); font-weight:700; display:block; margin-bottom:6px; }
 
   /* --- loneliness ad popup: real stacked cards, each closed individually --- */
   .lonely-ad{
@@ -286,6 +304,18 @@
   .buy-btn:disabled{ opacity:.4; cursor:default; }
   .buy-btn .cost{ display:block; font-weight:700; margin-top:3px; font-size:12px; letter-spacing:0; text-transform:none; }
   .shop-hint{ font-size:10px; color:var(--ink-dim); text-align:center; margin:2px 0 12px; letter-spacing:.05em; text-transform:uppercase; }
+  .high-score{
+    text-align:center; margin-bottom:16px; padding-bottom:16px;
+    border-bottom:1.5px dashed var(--ink-dim);
+  }
+  .high-score-label{
+    font-size:9px; letter-spacing:.14em; color:var(--ink-dim); font-weight:700;
+    text-transform:uppercase; margin-bottom:6px;
+  }
+  .high-score-value{
+    font-family:"Space Grotesk", sans-serif; font-size:28px; font-weight:700;
+    color:var(--orange);
+  }
 
   /* --- purchase log --- */
   .log-item{
@@ -327,11 +357,48 @@
     cursor:pointer; line-height:1;
   }
   .checkout-fab svg{ width:24px; height:24px; }
+  .checkout-fab.urge{ animation: urgePulse 1.1s ease-in-out infinite; }
+  @keyframes urgePulse{
+    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,61,0,.5); }
+    50%{ transform:scale(1.12); box-shadow:0 0 0 10px rgba(255,61,0,0); }
+  }
   .checkout-label{
     position:fixed; right:14px; bottom:70px; z-index:20;
     font-size:9px; letter-spacing:.06em; color:var(--orange); font-weight:600;
     text-transform:uppercase; text-align:center; width:64px; line-height:1.5;
   }
+  .tutorial-tip{
+    position:fixed; right:16px; bottom:130px; z-index:21;
+    max-width:220px; background:var(--orange); color:var(--bg);
+    padding:12px 14px; font-size:10.5px; line-height:1.6; font-weight:600;
+    display:none; text-align:left;
+  }
+  .tutorial-tip.show{ display:block; }
+  .tutorial-tip-arrow{
+    position:absolute; bottom:-8px; right:22px; width:0; height:0;
+    border-left:8px solid transparent; border-right:8px solid transparent;
+    border-top:8px solid var(--orange);
+  }
+
+  .milestone-screen{
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80;
+    display:none; align-items:center; justify-content:center; padding:24px;
+    cursor:pointer;
+  }
+  .milestone-screen.show{ display:flex; }
+  .milestone-card{
+    background:var(--orange); width:100%; max-width:320px; padding:32px 24px;
+    text-align:center; animation: milestonePop .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes milestonePop{
+    0%{ transform:scale(.85); opacity:0; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  .milestone-title{
+    font-family:"Space Grotesk", sans-serif; font-size:20px; font-weight:700;
+    color:var(--bg); line-height:1.4; margin-bottom:10px;
+  }
+  .milestone-sub{ font-size:11px; color:var(--bg); opacity:.9; line-height:1.7; }
 
   /* --- crew manifest (now a normal room panel, #panel-wc) --- */
   #panel-wc{ text-align:center; }
@@ -592,20 +659,24 @@
       </div>
       <div class="footer">
         <div class="staff-message" id="staffMessage"></div>
-        <div class="lonely-thought" id="lonelyThought"></div>
         <div class="lonely-row">
           <div class="lonely-label">LONELINESS</div>
           <div class="lonely-bar"><div class="lonely-fill" id="lonelyFill"></div></div>
         </div>
+        <div class="progress-hint" id="progressHint"></div>
       </div>
     </div>
 
     <div class="panel" id="panel-shop">
-      <div class="shop-hint">Upgrade the ship's systems with .CO / .COで船のシステムを改修できます</div>
+      <div class="shop-hint" id="shopHint">Upgrade the ship's systems with .CO / .COで船のシステムを改修できます</div>
       <div id="shopList"></div>
     </div>
 
     <div class="panel" id="panel-log">
+      <div class="high-score">
+        <div class="high-score-label">TOTAL SPENT / 累計支払額</div>
+        <div class="high-score-value" id="highScoreValue">0</div>
+      </div>
       <div class="shop-hint">Everything you've bought so far / これまでに購入した品物の一覧</div>
       <div id="logList"></div>
     </div>
@@ -620,6 +691,7 @@
         </svg>
       </div>
       <div class="ticker-static" id="newsFeedText">Standing by for signal...</div>
+      <div class="special-signal" id="specialSignal"></div>
       <div class="satellite-log" id="satelliteLog"></div>
     </div>
 
@@ -642,6 +714,18 @@
 
   <button class="checkout-fab" id="checkoutBtn" aria-label="Call staff to pay out"></button>
   <div class="checkout-label">Call Staff<br>店員を呼ぶ</div>
+
+  <div class="tutorial-tip" id="tutorialTip">
+    <div class="tutorial-tip-text">The counter is full — call the staff to shop!<br>カウンターがいっぱいになったら、店員を呼んで買い物をしよう</div>
+    <div class="tutorial-tip-arrow"></div>
+  </div>
+
+  <div class="milestone-screen" id="milestoneScreen">
+    <div class="milestone-card">
+      <div class="milestone-title" id="milestoneTitle"></div>
+      <div class="milestone-sub" id="milestoneSub"></div>
+    </div>
+  </div>
 
   <div class="confirm-screen" id="resetConfirmScreen">
     <div class="confirm-card">
@@ -753,12 +837,18 @@
   const burst1 = document.getElementById('burst1');
   const burst2 = document.getElementById('burst2');
   const shopListEl = document.getElementById('shopList');
+  const shopHintEl = document.getElementById('shopHint');
   const logListEl = document.getElementById('logList');
+  const highScoreValueEl = document.getElementById('highScoreValue');
   const panels = document.querySelectorAll('.panel');
   const gaugeDotsEl = document.getElementById('gaugeDots');
   const ownedRowEl = document.getElementById('ownedRow');
   const checkoutBtn = document.getElementById('checkoutBtn');
   const checkoutLabelEl = document.querySelector('.checkout-label');
+  const tutorialTipEl = document.getElementById('tutorialTip');
+  const milestoneScreenEl = document.getElementById('milestoneScreen');
+  const milestoneTitleEl = document.getElementById('milestoneTitle');
+  const milestoneSubEl = document.getElementById('milestoneSub');
   const checkoutModal = document.getElementById('checkoutModal');
   const modalScoreEl = document.getElementById('modalScore');
   const receiptListEl = document.getElementById('receiptList');
@@ -778,8 +868,9 @@
   const lonelyAdEl = document.getElementById('lonelyAd');
   const lonelyAdCardsEl = document.getElementById('lonelyAdCards');
   const newsFeedTextEl = document.getElementById('newsFeedText');
-  const lonelyThoughtEl = document.getElementById('lonelyThought');
+  const specialSignalEl = document.getElementById('specialSignal');
   const staffMessageEl = document.getElementById('staffMessage');
+  const progressHintEl = document.getElementById('progressHint');
   const tickerWrapEl = document.getElementById('tickerWrap');
   const tickerTextEl = document.getElementById('tickerText');
   const satelliteLogEl = document.getElementById('satelliteLog');
@@ -796,6 +887,9 @@
   let latestSignal = null;
   let colonyDay = 1;
   let aiCrewCount = 0; // 「人間の代わり」を購入した数。WCの生存人数に反映される(最大11)
+  let hasEverCheckedOut = false; // 一度でもCall Staffを使ったことがあるか(初回チュートリアル判定用)
+  let allDigitsUnlocked = false; // 15桁全て解放済みか(Satellite Roomの特別な受信内容の解禁に使う)
+  let tutorialShown = false; // 初回カンスト時のチュートリアルを既に出したか
   let tickerTimer = null;
   let holding = false;
   let startTime = 0;
@@ -1301,9 +1395,12 @@
   }
 
   const DOT_COUNT = 28;
-  const dots = [];
+  let dots = [];
+  const STAGE_SIZE = 184; // .stageのCSS固定サイズ(width/height)と必ず一致させる
   function buildGaugeDots(){
-    const size = stage.clientWidth || 184;
+    gaugeDotsEl.innerHTML = '';
+    dots = [];
+    const size = STAGE_SIZE;
     const cx = size / 2, cy = size / 2;
     const r = size / 2 - 4;
     for(let i = 0; i < DOT_COUNT; i++){
@@ -1423,19 +1520,36 @@
   let displayedPoints = 0;
   let unlockedDigitsCache = 5;
   function refreshDigitLocks(){
+    const prevUnlocked = unlockedDigitsCache;
     unlockedDigitsCache = currentUnlockedDigits();
     const lockedCount = POINTS_DIGITS - unlockedDigitsCache;
+    const prevLockedCount = POINTS_DIGITS - prevUnlocked;
     for(let i = 0; i < 8; i++){
       const isLocked = i < lockedCount;
+      const wasLocked = i < prevLockedCount;
       topDigits[i].classList.toggle('locked', isLocked);
       if(isLocked) topDigits[i].textContent = '';
+      if(wasLocked && !isLocked) showDigitUnlockTip(topDigits[i]);
     }
     for(let i = 0; i < 7; i++){
       const gi = i + 8;
       const isLocked = gi < lockedCount;
+      const wasLocked = gi < prevLockedCount;
       bottomDigits[i].classList.toggle('locked', isLocked);
       if(isLocked) bottomDigits[i].textContent = '';
+      if(wasLocked && !isLocked) showDigitUnlockTip(bottomDigits[i]);
     }
+  }
+  function showDigitUnlockTip(cellEl){
+    const tip = document.createElement('div');
+    tip.className = 'digit-unlock-tip';
+    tip.textContent = 'Unlocked!';
+    cellEl.appendChild(tip);
+    requestAnimationFrame(()=>{ tip.classList.add('show'); });
+    setTimeout(()=>{
+      tip.classList.remove('show');
+      setTimeout(()=>{ tip.remove(); }, 350);
+    }, 3200);
   }
   function renderDigits(value){
     const full = formatPoints(value);
@@ -1481,6 +1595,18 @@
 
   function updateHud(){
     idleLabelEl.textContent = '+' + formatDec(currentIdleRate(), 1) + ' / sec';
+    updateProgressHint();
+  }
+  function updateProgressHint(){
+    const next = nextDigitThreshold();
+    if(!next){
+      progressHintEl.innerHTML = '';
+      return;
+    }
+    const remaining = Math.max(next.threshold - totalSpentEver, 0);
+    progressHintEl.innerHTML =
+      'Spend ' + formatNum(remaining) + ' more .CO total to unlock digit ' + next.digits + '<br>' +
+      'あと' + formatNum(remaining) + '.CO支払うと' + next.digits + '桁目が解放されます';
   }
 
   function loop(){
@@ -1522,6 +1648,43 @@
     rafId = requestAnimationFrame(loop);
   }
 
+  function checkTutorialTrigger(){
+    if(hasEverCheckedOut || tutorialShown) return;
+    if(points >= currentCap()){
+      tutorialShown = true;
+      checkoutBtn.classList.add('urge');
+      tutorialTipEl.classList.add('show');
+    }
+  }
+  function dismissTutorial(){
+    checkoutBtn.classList.remove('urge');
+    tutorialTipEl.classList.remove('show');
+  }
+
+  // --- milestone celebration overlay: 桁解放やフェーズ移行など、進捗が分かりやすいタイミングで表示 ---
+  const milestoneQueue = [];
+  let milestoneShowing = false;
+  function queueMilestone(title, sub){
+    milestoneQueue.push({ title, sub });
+    if(!milestoneShowing) showNextMilestone();
+  }
+  function showNextMilestone(){
+    if(milestoneQueue.length === 0){
+      milestoneShowing = false;
+      return;
+    }
+    milestoneShowing = true;
+    const m = milestoneQueue.shift();
+    milestoneTitleEl.textContent = m.title;
+    milestoneSubEl.innerHTML = m.sub;
+    milestoneScreenEl.classList.add('show');
+  }
+  function closeMilestone(){
+    milestoneScreenEl.classList.remove('show');
+    setTimeout(showNextMilestone, 300);
+  }
+  milestoneScreenEl.addEventListener('click', closeMilestone);
+
   function spawnPopup(text){
     const rect = stage.getBoundingClientRect();
     const el = document.createElement('div');
@@ -1544,6 +1707,7 @@
 
     points += gained;
     points = Math.min(points, currentCap());
+    checkTutorialTrigger();
     if(sec > bestHold){
       bestHold = sec;
       bestEl.textContent = bestHold.toFixed(1) + 's';
@@ -1606,6 +1770,7 @@
     if(rate > 0){
       points += rate * 0.2;
       points = Math.min(points, currentCap());
+      checkTutorialTrigger();
       updateHud();
     }
   }, 200);
@@ -1623,8 +1788,10 @@
 
   function renderShop(){
     shopListEl.innerHTML = '';
+    let anyAtMax = false;
     upgrades.forEach(u => {
       const atMax = u.level >= u.maxLevel;
+      if(atMax) anyAtMax = true;
       const cost = costFor(u);
       const afford = !atMax && points >= cost;
 
@@ -1666,6 +1833,9 @@
       item.appendChild(btn);
       shopListEl.appendChild(item);
     });
+    shopHintEl.innerHTML = anyAtMax
+      ? 'Calling the staff sometimes raises the level cap<br>店員を呼ぶと、まれに上限レベルが解放されます'
+      : "Upgrade the ship's systems with .CO<br>.COで船のシステムを改修できます";
   }
 
   let roomChangeSfxReady = false;
@@ -1805,7 +1975,7 @@
     { base: '#4a4a47', dim: 'rgba(74,74,71,.6)',    faint: 'rgba(74,74,71,.22)' }    // 4: dark gray
   ];
   const MAX_LEVEL_CAP = 60;
-  const UNLOCK_CHANCE = 0.15; // アイテム1個ごとの上限解放確率(枠の開放よりずっと簡単)
+  const UNLOCK_CHANCE = 0.35; // アイテム1個ごとの上限解放確率(枠の開放よりずっと簡単)
   function rollLevelCapUnlocks(itemCount){
     const unlocked = [];
     for(let i = 0; i < itemCount; i++){
@@ -1880,6 +2050,7 @@
     return bonusLines;
   }
   function renderLog(){
+    highScoreValueEl.textContent = formatNum(totalSpentEver) + ' .CO';
     logListEl.innerHTML = '';
     const entries = Object.values(purchaseLog).sort((a,b) => b.cost - a.cost);
     if(entries.length === 0){
@@ -1973,7 +2144,10 @@
     modalScoreEl.textContent = formatNum(cr);
     checkoutModal.classList.add('show');
     AudioSys.sfxCheckout();
+    hasEverCheckedOut = true;
+    dismissTutorial();
     clearTimeout(printTimer);
+    const stageBefore = storyStageIndex();
     const receipt = buildReceipt(cr);
     const bonusLines = recordPurchase(receipt);
     printReceipt(receipt, bonusLines);
@@ -1983,11 +2157,37 @@
     advanceColonyDay();
     saveState();
     triggerTickerSoon(4000 + Math.random() * 2000);
-    triggerStaffMessageSoon(2500 + Math.random() * 1500);
+
+    // レシートを閉じた後に気づきやすいよう、進捗の演出を少し遅らせてキューに入れる
+    const digitBonus = bonusLines.find(l => l.name.indexOf('Digit Cap Expansion') === 0);
+    const justUnlockedAll = digitBonus && currentUnlockedDigits() === POINTS_DIGITS && !allDigitsUnlocked;
+    if(justUnlockedAll){
+      allDigitsUnlocked = true;
+    }
+    if(digitBonus && !justUnlockedAll){
+      setTimeout(()=>{
+        queueMilestone('Counter Expanded!', digitBonus.nameJa + '<br>もっと大きな数字を貯められるようになりました');
+      }, 900);
+    } else if(justUnlockedAll){
+      setTimeout(()=>{
+        queueMilestone('Signal Received', '全ての桁が埋まった瞬間、アンテナが何かを捉えた<br>サテライトルームで確認してみよう');
+      }, 900);
+    }
+    const stageAfter = storyStageIndex();
+    if(stageAfter > stageBefore){
+      setTimeout(()=>{
+        queueMilestone('The Story Moves Forward', 'ストーリーが新しい局面に進みました<br>ニュースやコロニーの様子に変化があるかもしれません');
+      }, digitBonus ? 1400 : 900);
+      // フェーズが進んだ回は、雑談ではなく店員からの状況説明を優先して届ける
+      triggerStaffMessageSoon(2500 + Math.random() * 1500, stageAfter);
+    } else {
+      triggerStaffMessageSoon(2500 + Math.random() * 1500);
+    }
   }
 
   checkoutBtn.addEventListener('click', ()=>{
     checkoutFromLonelyAd = false;
+    dismissTutorial();
     confirmScreen.classList.add('show');
   });
   confirmCancelBtn.addEventListener('click', ()=>{
@@ -2035,7 +2235,9 @@
         lonely: lonely,
         latestSignal: latestSignal,
         colonyDay: colonyDay,
-        aiCrewCount: aiCrewCount
+        aiCrewCount: aiCrewCount,
+        hasEverCheckedOut: hasEverCheckedOut,
+        allDigitsUnlocked: allDigitsUnlocked
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }catch(e){}
@@ -2068,12 +2270,16 @@
       if(typeof data.latestSignal === 'string') latestSignal = data.latestSignal;
       if(typeof data.colonyDay === 'number') colonyDay = data.colonyDay;
       if(typeof data.aiCrewCount === 'number') aiCrewCount = data.aiCrewCount;
+      if(typeof data.hasEverCheckedOut === 'boolean') hasEverCheckedOut = data.hasEverCheckedOut;
+      else if(data.totalSpentEver > 0) hasEverCheckedOut = true; // 旧セーブデータからの移行: 既に支払い履歴があれば経験済み扱い
+      if(typeof data.allDigitsUnlocked === 'boolean') allDigitsUnlocked = data.allDigitsUnlocked;
     }catch(e){}
   }
   loadState();
   displayedPoints = points;
   bestEl.textContent = bestHold.toFixed(1) + 's';
   applyStageColors();
+  unlockedDigitsCache = currentUnlockedDigits(); // 初回ロード時は差分検知させず静かに反映する
   refreshDigitLocks();
   updateLonelyBar();
   crewDayEl.textContent = 'DAY ' + colonyDay;
@@ -2291,7 +2497,10 @@
     'たくさん買った客だけが、次の桁に手が届くらしいぞ',
     'ラボの装置、上限を超えて伸びることがあると聞いた',
     '買い物を重ねるほど、色々な上限が緩んでいくとか',
-    '常連客ほど、カウンターの表示できる桁が増えていくらしい'
+    '常連客ほど、カウンターの表示できる桁が増えていくらしい',
+    'カウンターを最後まで埋めた客は、地球に帰れたという話がある',
+    '噂に過ぎないが、限界まで使い切ると迎えが来るという客もいる',
+    '本当かは知らんが、桁を全部埋めた客はもう見ていないな'
   ];
 
   function pickTickerMessage(){
@@ -2324,6 +2533,15 @@
   }
   function refreshNewsFeed(){
     newsFeedTextEl.textContent = latestSignal || 'Standing by for signal...';
+    if(allDigitsUnlocked){
+      specialSignalEl.classList.add('show');
+      specialSignalEl.innerHTML =
+        '<span class="en">UNKNOWN SIGNAL DETECTED</span>' +
+        'この信号は、これまでのどのニュースとも違う。<br>まだ、その内容までは読み取れていない。<br><br>' +
+        '<span class="en" style="font-size:9px;opacity:.8;">Unidentified transmission — origin unknown</span>';
+    } else {
+      specialSignalEl.classList.remove('show');
+    }
     satelliteLogEl.innerHTML = '';
     if(newsLog.length === 0){
       const empty = document.createElement('div');
@@ -2376,84 +2594,91 @@
   }
   scheduleTicker();
 
-  // --- lonely thoughts: 主人公の心の声。寂しさが軸だが、時々ゲームのヒントもふんわり混ぜる ---
-  const lonelyThoughts = [
-    'このコロニーには、俺しかいない。',
-    '.coを開いている時だけが、唯一まともな時間な気がする。',
-    '誰かと話したいわけじゃない。ただ、静かすぎるだけだ。',
-    '今日も.coを開いた。それだけで、少し息ができる。',
-    '店員を呼んで買えるだけ買うと、たまにカウンターの枠が広がる気がする。',
-    '気のせいかもしれないが、買い物を続けていると装置の性能も上がっていく。',
-    '窓の外は、ずっと同じ景色のままだ。',
-    '.coの広告を眺めているだけで、少し落ち着く。',
-    'また今日も、誰の声も聞いていない。',
-    'ラボの機材をいじっていると、時間を忘れられる。',
-    '買い物のたびに、何かが少しずつ変わっている気がする。',
-    '寂しさは、そのうち慣れると思っていた。',
-    '.coに繋がっている限り、まだ一人じゃない気がする。',
-    'カウンターの数字が増えるのを見るのが、唯一の楽しみだ。',
-    'そろそろ、また店員を呼んでもいいかもしれない。',
-    '店員は、いつも同じ調子で応えてくれる。それが妙に安心する。',
-    'まだ店員を呼んでいない。今日はもう少し我慢しよう。',
-    '呼べば誰かが応えてくれる。それだけで、十分な気がする時がある。',
-    '店員の声を、もう少しだけ聞いていたい。'
-  ];
-  let lonelyThoughtTimer = null;
-  function showLonelyThought(){
-    const text = lonelyThoughts[Math.floor(Math.random() * lonelyThoughts.length)];
-    lonelyThoughtEl.textContent = text;
-    lonelyThoughtEl.classList.add('show');
-    scheduleLonelyThoughtHide();
-  }
-  function scheduleLonelyThoughtHide(){
-    clearTimeout(lonelyThoughtTimer);
-    lonelyThoughtTimer = setTimeout(()=>{
-      lonelyThoughtEl.classList.remove('show');
-      scheduleLonelyThought();
-    }, 6000);
-  }
-  function scheduleLonelyThought(){
-    clearTimeout(lonelyThoughtTimer);
-    const delay = 20000 + Math.random() * 15000; // 20〜35秒に1回
-    lonelyThoughtTimer = setTimeout(showLonelyThought, delay);
-  }
-  scheduleLonelyThought();
-
   // --- staff messages: 店員からの一言。温かさと不気味さの中間のトーン。基本は会計の後に届く ---
-  const staffMessages = [
+  // (1) 通常時: 会計と関係なく、ふと届く店員らしい気遣いの言葉
+  const staffIdleMessages = [
+    'お体に、お変わりありませんか？',
+    '今日も、良い一日をお過ごしください。',
+    '何かご入用のものがあれば、いつでもお声がけください。',
+    '当店は、いつでも開いております。',
+    'こちらは、いつでもお客様をお待ちしております。',
+    'たまには、ゆっくりお過ごしくださいね。',
+    'お客様のことは、いつも記録に残っております。',
+    'いつも同じ時間にいらっしゃいますね。存じております。',
+    '寒くなってきましたが、暖房の調子はいかがですか。',
+    '今日の信号は、少し弱いようですね。こちらでは把握しております。'
+  ];
+  // (2) 購入後: 会計(Call Staff)が成立した直後に届くお礼の言葉
+  const staffThanksMessages = [
     '本日もご利用ありがとうございます。またのお越しをお待ちしております。',
     'いつもお買い上げいただき、感謝しております。',
-    'お客様のことは、いつも記録に残っております。',
     'ご注文、確かに承りました。',
     'こちらこそ、いつもありがとうございます。',
     'お客様のような方が、私どもには大切です。',
-    '本日も一日、お疲れ様でした。',
     'またお会いできて、嬉しく思います。',
-    'ご用命があれば、いつでもお呼びください。',
-    'お客様の記録は、これからも大切に保管いたします。',
-    'ようこそ、.coへ。今日も良いお買い物を。',
-    'いつも同じ時間にいらっしゃいますね。存じております。'
+    'ご用命、確かに完了いたしました。',
+    'ようこそ、.coへ。今日も良いお買い物を。'
+  ];
+  // (3) ストーリー説明: フェーズが進むたびに、店員が状況を要約して教えてくれる(ニュースより確実に目に留まる形で伝える)
+  // 配列のインデックスは stageAfter-1 に対応(stageAfterは1〜4の値を取る)
+  const staffStoryMessages = [
+    'ご存知でしたか？　少し前から、地球に来訪者が来ているそうです。心配なさらず、お買い物はいつも通りお楽しみください。', // stageAfter=1
+    '戦争が始まったと聞いております。物流には影響が出ておりますが、当店の営業は変わらず続けております。', // stageAfter=2
+    '海の水が、随分と減ってきているそうですね。人類の機械化も進んでいるとか。こんな時こそ、便利な品物をお手元にどうぞ。', // stageAfter=3
+    '地球が、もう存在しないそうです。それでも、私どもはこうしてお客様とお話しできております。' // stageAfter=4
   ];
   let staffMessageTimer = null;
-  function showStaffMessage(){
-    const text = staffMessages[Math.floor(Math.random() * staffMessages.length)];
+  function showStaffMessage(text, isImportant){
     staffMessageEl.textContent = '【店員】' + text;
     staffMessageEl.classList.add('show');
     clearTimeout(staffMessageTimer);
     staffMessageTimer = setTimeout(()=>{
       staffMessageEl.classList.remove('show');
-    }, 7000);
+    }, isImportant ? 9000 : 7000);
   }
-  function triggerStaffMessageSoon(delayMs){
-    setTimeout(showStaffMessage, delayMs);
+  function showStaffIdleMessage(){
+    const text = staffIdleMessages[Math.floor(Math.random() * staffIdleMessages.length)];
+    showStaffMessage(text, false);
   }
+  function showStaffThanksMessage(){
+    const text = staffThanksMessages[Math.floor(Math.random() * staffThanksMessages.length)];
+    showStaffMessage(text, false);
+  }
+  function showStaffStoryMessage(stageAfter){
+    const text = staffStoryMessages[stageAfter - 1];
+    if(text) showStaffMessage(text, true);
+  }
+  function triggerStaffMessageSoon(delayMs, stageAfter){
+    setTimeout(()=>{
+      if(stageAfter){
+        showStaffStoryMessage(stageAfter);
+      } else {
+        showStaffThanksMessage();
+      }
+    }, delayMs);
+    scheduleIdleStaffMessage();
+  }
+  // 会計とは関係なく、待機中も店員からふと気遣いの言葉が届くことがある
+  let idleStaffMessageTimer = null;
+  function scheduleIdleStaffMessage(){
+    clearTimeout(idleStaffMessageTimer);
+    const delay = 40000 + Math.random() * 30000; // 40〜70秒に1回
+    idleStaffMessageTimer = setTimeout(()=>{
+      showStaffIdleMessage();
+      scheduleIdleStaffMessage();
+    }, delay);
+  }
+  scheduleIdleStaffMessage();
 
   applyDigitFontSize();
   renderShop();
   renderOwnedRow();
   renderLog();
   if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(applyDigitFontSize);
+    document.fonts.ready.then(()=>{
+      applyDigitFontSize();
+      buildGaugeDots();
+    });
   }
 })();
 </script>
