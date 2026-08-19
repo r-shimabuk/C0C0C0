@@ -128,7 +128,12 @@
 
   /* --- charge panel --- */
   #panel-charge{ justify-content:flex-start; }
-  .stage{ position:relative; width:184px; height:184px; display:flex; align-items:center; justify-content:center; margin-bottom:26px; margin-top:36px; }
+  .stage{
+    position:fixed; top:400px; left:50%; transform:translateX(-50%);
+    width:184px; height:184px; display:flex; align-items:center; justify-content:center;
+    z-index:15;
+  }
+  .stage.hide-in-other-room{ display:none; }
   #gaugeDots{ position:absolute; inset:0; }
   .gdot{
     position:absolute; width:5px; height:5px; border-radius:50%;
@@ -647,16 +652,6 @@
 
   <div class="panels">
     <div class="panel active" id="panel-charge">
-      <div class="stage">
-        <div class="mult-bubble" id="multBubble">×1.00</div>
-        <div id="gaugeDots"></div>
-        <div class="burst-ring ring1" id="burst1"></div>
-        <div class="burst-ring ring2" id="burst2"></div>
-        <div class="core" id="core">
-          <div class="verb" id="verb">HOLD</div>
-          <div class="hold-time" id="holdTime">0.0</div>
-        </div>
-      </div>
       <div class="footer">
         <div class="staff-message" id="staffMessage"></div>
         <div class="lonely-row">
@@ -709,6 +704,17 @@
           <button class="crew-yn-btn" id="crewResetNBtn">N</button>
         </span>
       </div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="mult-bubble" id="multBubble">×1.00</div>
+    <div id="gaugeDots"></div>
+    <div class="burst-ring ring1" id="burst1"></div>
+    <div class="burst-ring ring2" id="burst2"></div>
+    <div class="core" id="core">
+      <div class="verb" id="verb">HOLD</div>
+      <div class="hold-time" id="holdTime">0.0</div>
     </div>
   </div>
 
@@ -1872,6 +1878,7 @@
     const inMainRoom = roomId === 'charge';
     checkoutBtn.style.display = inMainRoom ? 'flex' : 'none';
     checkoutLabelEl.style.display = inMainRoom ? 'block' : 'none';
+    stage.style.display = inMainRoom ? 'flex' : 'none';
     if(roomId === 'shop') renderShop();
     if(roomId === 'log') renderLog();
     if(roomId === 'news') refreshNewsFeed();
