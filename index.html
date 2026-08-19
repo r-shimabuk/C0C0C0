@@ -2868,12 +2868,28 @@
     'その日は、遠くないはずです。'
   ];
   // (3) ストーリー説明: フェーズが進むたびに、店員が状況を要約して教えてくれる(ニュースより確実に目に留まる形で伝える)
-  // 配列のインデックスは stageAfter-1 に対応(stageAfterは1〜4の値を取る)
+  // 配列のインデックスは stageAfter-1 に対応(stageAfterは1〜4の値を取る)。各フェーズ複数パターンからランダムに選ぶ
   const staffStoryMessages = [
-    'ご存知でしたか？　少し前から、地球に来訪者が来ているそうです。心配なさらず、お買い物はいつも通りお楽しみください。', // stageAfter=1
-    '戦争が始まったと聞いております。物流には影響が出ておりますが、当店の営業は変わらず続けております。', // stageAfter=2
-    '海の水が、随分と減ってきているそうですね。人類の機械化も進んでいるとか。こんな時こそ、便利な品物をお手元にどうぞ。', // stageAfter=3
-    '地球が、もう存在しないそうです。それでも、私どもはこうしてお客様とお話しできております。' // stageAfter=4
+    [ // stageAfter=1: 宇宙人来訪
+      '少し前から、地球に来訪者が来ているそうです。',
+      '心配なさらず、お買い物はいつも通りに。',
+      '来訪者の件、当店の営業には影響ありません。'
+    ],
+    [ // stageAfter=2: 戦争開始
+      '戦争が始まったと聞いております。',
+      '物流には影響が出ておりますが、営業は続けます。',
+      '物騒な話ですが、当店はいつも通りです。'
+    ],
+    [ // stageAfter=3: 海洋枯渇・機械化
+      '海の水が、随分と減ってきているそうです。',
+      '人類の機械化も進んでいるとか。',
+      'こんな時こそ、便利な品物をどうぞ。'
+    ],
+    [ // stageAfter=4: 地球消失
+      '地球が、もう存在しないそうです。',
+      'それでも、こうしてお話しできております。',
+      '不思議なものですね、営業は続いております。'
+    ]
   ];
   let staffMessageTimer = null;
   function showStaffMessage(text, isImportant){
@@ -2901,8 +2917,11 @@
     showStaffMessage(text, false);
   }
   function showStaffStoryMessage(stageAfter){
-    const text = staffStoryMessages[stageAfter - 1];
-    if(text) showStaffMessage(text, true);
+    const pool = staffStoryMessages[stageAfter - 1];
+    if(pool && pool.length > 0){
+      const text = pool[Math.floor(Math.random() * pool.length)];
+      showStaffMessage(text, true);
+    }
   }
   function triggerStaffMessageSoon(delayMs, stageAfter){
     setTimeout(()=>{
