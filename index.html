@@ -60,8 +60,9 @@
   .brand{ font-size:10px; letter-spacing:.3em; color:var(--ink-dim); text-transform:uppercase; font-weight:600; }
   .brand-ext{ font-size:9px; letter-spacing:.1em; color:var(--white); background:var(--orange); padding:1px 5px; font-weight:700; }
   .ship-label{
-    font-size:8.5px; letter-spacing:.08em; color:var(--ink-dim); font-weight:600;
-    text-transform:uppercase; margin-bottom:10px;
+    font-size:8.5px; letter-spacing:.05em; color:var(--ink-dim); font-weight:600;
+    text-transform:uppercase; flex:1; margin-left:8px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
   }
   .hud .toprow{
     display:flex; justify-content:space-between; align-items:baseline;
@@ -736,9 +737,9 @@
   <div class="hud">
     <div class="brand-row">
       <div class="brand-ext">.CO</div>
+      <div class="ship-label">COLONY SHIP — 個人用コロニー船内</div>
       <button class="mute-btn" id="muteBtn" aria-label="Toggle sound"></button>
     </div>
-    <div class="ship-label">COLONY SHIP — 個人用コロニー船内</div>
     <div class="toprow">
       <div class="stat-col">
         <div class="label">POINTS</div>
